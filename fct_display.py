@@ -1172,6 +1172,8 @@ def _on_release(event, self):
         # self.updateProfilePlt()
         # Update ellipse position from profile change
         self.updateSARPlot()
+        # Set checked save button to tell user modification has been done
+        self.pushButton_pickSAR_save.setChecked(True)
         # Update 3dView if mode auto
         if self.checkBox_auto_update.isChecked():
             self.initiateSimAmpliPlot()
