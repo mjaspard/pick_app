@@ -151,7 +151,7 @@ def getSARFig(self):
 
         dataset['crater_bottom_edgeS_x'][i] = crater_bottom_edgeN_x
         center_crater_y = (((crater_inner_edgeS_y - crater_inner_edgeN_y)/2) + crater_inner_edgeN_y)
-        dataset['crater_bottom_edgeS_y'][i] = ((center_crater_y  - crater_bottom_edgeN_y) * 2) + crater_bottom_edgeN_y
+        # dataset['crater_bottom_edgeS_y'][i] = ((center_crater_y  - crater_bottom_edgeN_y) * 2) + crater_bottom_edgeN_y
 
         # Rewrite in local variable
         crater_outer_edgeS_x = dataset['crater_outer_edgeS_x'][i]
@@ -159,7 +159,7 @@ def getSARFig(self):
         crater_topCone_edgeS_x = dataset['crater_topCone_edgeS_x'][i]
         crater_topCone_edgeS_y = dataset['crater_topCone_edgeS_y'][i]
         crater_bottom_edgeS_x = dataset['crater_bottom_edgeS_x'][i]
-        crater_bottom_edgeS_y = dataset['crater_bottom_edgeS_y'][i]
+        # crater_bottom_edgeS_y = dataset['crater_bottom_edgeS_y'][i]
 
 
         # Ellipses
@@ -211,7 +211,7 @@ def getSARFig(self):
         self.ax.plot(crater_topCone_edgeN_x,crater_topCone_edgeN_y,marker="o", markeredgecolor="orange", markerfacecolor="orange")
         # self.ax.plot(crater_topCone_edgeN_x,crater_topCone_edgeS_y,marker="o", markeredgecolor="orange", markerfacecolor="orange")
         self.ax.plot(crater_bottom_edgeN_x,crater_bottom_edgeN_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
-        # self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
+        self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
     
     # restore previous zoom value
     # print("self.SAR_zoom = ", self.SAR_zoom)
@@ -719,140 +719,258 @@ def getSimAmpliFig(self):
 
 
 
-    #===== FIRST PLOT : Ctrater in 3d=====#
-    self.ax2 = self.figure_sim_ampli.add_subplot(111, projection='3d') 
-    # n1 is number of samples to create circle
-    # n2, number of sample to link both circle
+    #======================== FIRST PLOT : Ctrater in 3d    ========================#
+
+    if self.pushButton_3d.isChecked():
 
 
-    n11 = 40
-    n21 = 20
+        print("print 3d view")
+        self.ax2 = self.figure_sim_ampli.add_subplot(111, projection='3d') 
+        # n1 is number of samples to create circle
+        # n2, number of sample to link both circle
 
-    n12 = 20
-    n22 = 10
+        n11 = 40
+        n21 = 20
 
-   
+        n12 = 20
+        n22 = 10
 
+       
+        # Draw Outside of caldera
+        X, Y, Z = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
+        self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
+        # Caldera ring
+        Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
+        self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
 
-    # Draw Outside of caldera
-    X, Y, Z = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
-    self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
-    # Caldera ring
-    Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
-    self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
+        # Draw cone from caldera ring to P2 outer ring
+        X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
+        self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
+        # Draw P2 Outer ring
+        Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
+        self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
 
-    # Draw cone from caldera ring to P2 outer ring
-    X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
-    self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
-    # Draw P2 Outer ring
-    Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
-    self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
+        # Draw P2, need to use another function as both circle are at the same height but not centered the same
+        rayon_inner = diameter_crater/2
+        # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
+        # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
+        X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
+        self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
 
-    # Draw P2, need to use another function as both circle are at the same height but not centered the same
-    rayon_inner = diameter_crater/2
-    # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
-    # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
-    X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
-    self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
+        # Draw P2 inner ring (lake limit)
+        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
+        self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
 
-    # Draw P2 inner ring (lake limit)
-    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
-    self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
+        print("delta_x in 3D view = ", delta_x)
+        # Draw cone from P2 level to vertical limit inside the crater
+        X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
+        self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
+        # Draw middle bottom crater ring
+        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
+        self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
 
-    print("delta_x in 3D view = ", delta_x)
-    # Draw cone from P2 level to vertical limit inside the crater
-    X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
-    self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
-    # Draw middle bottom crater ring
-    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
-    self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
-
-    # Draw cone from middle of crater to bottom of crater
-    rayon_inner_bottom = diameter_bottom/2
-    X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
-    self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-
-
-    # Draw bottom surface
-    X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
-    self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-    # Draw Bottom ring
-    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
-    self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
-
-    self.ax2.set_xlim(-1000, 1000)
-    self.ax2.set_ylim(-1000, 1000)
-
-    # print(dir(self.figure_sim_ampli))
-
-    self.ax2.set_ylabel('$Azimuth direction$', fontsize=20, rotation=150)
-    self.ax2.set_xlabel('$Range direction$', fontsize=20, rotation=150)
+        # Draw cone from middle of crater to bottom of crater
+        rayon_inner_bottom = diameter_bottom/2
+        X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
+        self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
 
 
-    # X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    # Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
+        # Draw bottom surface
+        X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
+        self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
+        # Draw Bottom ring
+        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
+        self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
+
+        self.ax2.set_xlim(-1000, 1000)
+        self.ax2.set_ylim(-1000, 1000)
+
+        # print(dir(self.figure_sim_ampli))
+
+        self.ax2.set_ylabel('$Azimuth direction$', fontsize=20, rotation=150)
+        self.ax2.set_xlabel('$Range direction$', fontsize=20, rotation=150)
 
 
-    import matplotlib.path as mpath
-    import matplotlib.transforms as transforms
-
+        X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
+        Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
 
 
 
-    #===== SECOND PLOT =====#
+
+
+
+
+
+    #======================== SECOND PLOT ========================#
+
+    elif self.pushButton_profile.isChecked():
+
+        import matplotlib.path as mpath
+        import matplotlib.transforms as transforms
+
+        print("print profile")
+
 
 
     # # Rotate Profile
-    # self.ax3 = self.figure_sim_ampli.add_subplot(211)
-    # self.ax3.set_title("Rotate profile: angle = {} deg".format(incidence_angle_deg))
+        print("print profile")
+        self.ax2 = self.figure_sim_ampli.add_subplot(211) 
+        self.ax2.set_title("Rotate profile: angle = {} deg".format(incidence_angle_deg))
 
-    # # Format as vertices to allow path
-    # vertices = list(zip(x_samples,y_samples))
-    # # print("vertices = ", vertices)
+        self._line2 = lines.Line2D(X_profile_all ,Y_profile_all , marker="o", color="grey", markeredgecolor="grey", markerfacecolor="grey", alpha=0.5)
+        # self.ax2.add_line(self._line2)
+        self.ax2.set_xlim(-2500, 2500)  # self.SAR_width = number of pixels in azimut direction for this image
+        self.ax2.set_ylim(2200, 4200)
+        self.ax2.set_xlabel('[m]')
+        self.ax2.set_ylabel('[m]')   
+        # Sampling of profile on 100 points
+        x_values = self._line.get_xdata()
+        y_values = self._line.get_ydata()    
+        # create a list of evenly spaced x values
+        num_samples = 200
+        x_samples = np.linspace(min(x_values), max(x_values), num_samples)
+        # interpolate the y values at these x values
+        y_samples = np.interp(x_samples, x_values, y_values)
+        # create a list of points
+        points = [(x, y) for x, y in zip(x_samples, y_samples)]
+        # print(points)
+        self.ax2.plot(x_samples,y_samples,marker="o", markeredgecolor="grey", markersize=1)
 
-    # # Create a Path object from the vertices
-    # path = mpath.Path(vertices)
-
-    # # Create a transformation object with center the middle of the crater
-
-    # rotation = -incidence_angle_deg
-    # trans = transforms.Affine2D().rotate_deg_around(0, Iy, rotation)
-
-    # # Transform the Path object using the transformation
-    # transformed_path = trans.transform_path(path)
-
-    # # Get the transformed coordinates of the polygon's points
-    # transformed_vertices = transformed_path.vertices
-
-    # # Print the transformed coordinates
-    # # print(transformed_vertices)
-
-    # # Extract x and y array from rotated vertices
-    # x2, y2 = zip(*transformed_vertices)
-
-    # # Plot it
-    # self.ax3.plot(x2,y2,marker=".", color="grey", markersize=1, alpha=0.5)
-    # self.ax3.plot(x_samples,y_samples,marker=".", color="orange", markersize=1, alpha=0.5)
-
-   
+        # Format as vertices to allow path
+        vertices = list(zip(x_samples,y_samples))
+        # print("vertices = ", vertices)
+        # Create a Path object from the vertices
+        path = mpath.Path(vertices)
+        # Create a transformation object with center the middle of the crater
+        rotation = -incidence_angle_deg
+        trans = transforms.Affine2D().rotate_deg_around(0, Iy, rotation)
+        # Transform the Path object using the transformation
+        transformed_path = trans.transform_path(path)
+        # Get the transformed coordinates of the polygon's points
+        transformed_vertices = transformed_path.vertices
+        # Print the transformed coordinates
+        # print(transformed_vertices)
+        # Extract x and y array from rotated vertices
+        x2, y2 = zip(*transformed_vertices)
+        # Plot it
+        # self.ax2.plot(x2,y2,marker=".", color="orange", markersize=1)
+        self.ax2.scatter(x2,y2, color="red", marker='.', edgecolors="k", linewidths=0.5)
 
 
+        print("y_samples = ", y_samples)
+        print("typeof y_samples = ", type(y_samples))
+        print("typeof y_samples = ", type(y_samples[0]))
+  
+
+        print("y2 = ", y_samples)
+        print("typeof y2 = ", type(y2))
+        print("typeof y2 = ", type(y2[0]))        
+
+        # Create Histogram
+        self.ax3 = self.figure_sim_ampli.add_subplot(212)
+        self.ax3.set_title("Histogram")
+        bins = 100 # Number of samples in range
+        self.ax3.hist(y_samples, bins=bins, orientation='vertical', color="grey", alpha=0.6)
+        # self.ax3.hist(y2, bins=bins, orientation='vertical', color="red", alpha=0.3)
 
     # #===== THIRD PLOT =====#
-    # # Create Histogram
-    # self.ax4 = self.figure_sim_ampli.add_subplot(212)
-    # self.ax4.set_title("Histogram")
-    # bins = 100 # Number of samples in range
-    # self.ax4.hist(y_samples, bins=bins, orientation='vertical', color="orange")
-    # self.ax4.hist(y2, bins=bins, orientation='vertical', color="grey")
+
+
+    # if self.pushButton_simamp.isChecked():
+
+
+    #     print("print 3d view")
+    #     self.ax2 = self.figure_sim_ampli.add_subplot(111, projection='3d') 
+    #     # n1 is number of samples to create circle
+    #     # n2, number of sample to link both circle
+
+
+    #     # Map footprint in meters
+    #     xmin, xmax = -3500, 3500
+    #     ymin = -3500, 3500
+    #     ech = 501     # x and y sampling number
+    #     subs = 5     # subsampling intervalle for plots
+    #     ech2 = 1000     # range sampling for amplitude computation
+
+
+    #     # Define grid
+    #     x,y = np.linspace(xmin,xmax, ech), np.linspace(ymin,ymax, ech)
+    #     X,Y = np.meshgrid(x,y)
+    #     Z = np.zeros(len(X))        # initialise elevation at 0m everywhere
+
+
+    #     n11 = 40
+    #     n21 = 20
+
+    #     n12 = 20
+    #     n22 = 10
+
+       
+    #     # Draw Outside of caldera
+    #     X1, Y1, Z1 = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
+    #     ind = np.where
+    #     self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
+    #     # Caldera ring
+    #     Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
+    #     self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
+
+    #     # Draw cone from caldera ring to P2 outer ring
+    #     X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
+    #     self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
+    #     # Draw P2 Outer ring
+    #     Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
+    #     self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
+
+    #     # Draw P2, need to use another function as both circle are at the same height but not centered the same
+    #     rayon_inner = diameter_crater/2
+    #     # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
+    #     # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
+    #     X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
+    #     self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
+
+    #     # Draw P2 inner ring (lake limit)
+    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
+    #     self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
+
+    #     print("delta_x in 3D view = ", delta_x)
+    #     # Draw cone from P2 level to vertical limit inside the crater
+    #     X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
+    #     self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
+    #     # Draw middle bottom crater ring
+    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
+    #     self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
+
+    #     # Draw cone from middle of crater to bottom of crater
+    #     rayon_inner_bottom = diameter_bottom/2
+    #     X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
+    #     self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
+
+
+    #     # Draw bottom surface
+    #     X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
+    #     self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
+    #     # Draw Bottom ring
+    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
+    #     self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
+
+    #     self.ax2.set_xlim(-1000, 1000)
+    #     self.ax2.set_ylim(-1000, 1000)
+
+    #     # print(dir(self.figure_sim_ampli))
+
+    #     self.ax2.set_ylabel('$Azimuth direction$', fontsize=20, rotation=150)
+    #     self.ax2.set_xlabel('$Range direction$', fontsize=20, rotation=150)
+
+
+    #     X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
+    #     Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
 
 
 
 
 
 
-
-    # self.figure_sim_ampli.tight_layout()
+    self.figure_sim_ampli.tight_layout(pad=100.0)
     # Canvas creation
     self.canvas_sim_ampli = FigureCanvas(self.figure_sim_ampli)
 
@@ -916,6 +1034,7 @@ def getPointNameFromIndex(index):
     4: 'crater_inner_edgeS',
     5: 'crater_topCone_edgeN',
     6: 'crater_bottom_edgeN',
+    7: 'crater_bottom_edgeS',
     }
     return switcher.get(index, "nothing")
 

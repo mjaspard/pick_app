@@ -53,12 +53,20 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_pickSAR_previous.clicked.connect(self.pickSARPrev)
 		self.pushButton_pickSAR_save.clicked.connect(self.pickSARSave)
 		self.pushButton_update_simamp.clicked.connect(self.initiateSimAmpliPlot)
+		self.pushButton_simamp.clicked.connect(lambda: self.updateView(1))
+		self.pushButton_3d.clicked.connect(lambda: self.updateView(2))
+		self.pushButton_profile.clicked.connect(lambda: self.updateView(3))
+
+		# Initialise view option between amplitude and 3d 
+		self.pushButton_simamp.setChecked(False)
+		self.pushButton_3d.setChecked(True)
+		self.pushButton_profile.setChecked(False)
 
 
 
 		# rewrite the size here to work in DT designer easier
 		# self.SARImage.setMaximumSize(QSize(2000, 2000))
-		self.dockWidget_SimAmp.resize(QSize(700, 700))
+		# self.dockWidget_SimAmp.resize(QSize(700, 700))
 
 		# self.ProfilePlt.setMinimumSize(QSize(100, 100))
 		# self.ProfilePlt.resize(1000, 500)
@@ -318,10 +326,10 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				"""
 
 			# Close current figure if it exists:
-			print(" initiate amplitude simulation plot")
+			# print(" initiate amplitude simulation plot")
 			if self.rm_canvas_simampli:
 				self.canvas_sim_ampli.close()
-				print("-- remove canvas profile")
+				# print("-- remove canvas profile")
 				# self.canvas_profile.close()
 
 
@@ -337,5 +345,23 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			# Draw the figure
 			self.canvas_sim_ampli.draw()
 
+	def updateView(self, num):
+		""" This function will switch between different view (3d, simulated amplitude ...)
+		It will change the status of button and the reload the graph"""
 
+		if (num == 1):
+			print("Clicked 1")
+			self.pushButton_simamp.setChecked(True)
+			self.pushButton_3d.setChecked(False)
+			self.pushButton_profile.setChecked(False)
+		elif (num == 2):
+			print("Clicked 2")
+			self.pushButton_simamp.setChecked(False)
+			self.pushButton_3d.setChecked(True)
+			self.pushButton_profile.setChecked(False)
+		elif (num == 3):
+			self.pushButton_simamp.setChecked(False)
+			self.pushButton_3d.setChecked(False)
+			self.pushButton_profile.setChecked(True)
 
+		self.initiateSimAmpliPlot()

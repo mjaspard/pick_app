@@ -196,6 +196,9 @@
            <property name="text">
             <string>3D view</string>
            </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -216,6 +219,9 @@
            <property name="text">
             <string>Profile view</string>
            </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -235,6 +241,9 @@
           <widget class="QPushButton" name="pushButton_simamp">
            <property name="text">
             <string>Sim. Amp view</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
