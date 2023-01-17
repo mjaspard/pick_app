@@ -753,7 +753,7 @@ def getView3dFig(self):
 #===============================================================================================================
 
 
-def getSimAmpliFig(self):
+def getSimAmpliFig(self, init=False):
     """ Function that will return the canvas of simulated amplitude
     1. Load data locally from csv file (no need somewhere else so do not use self)
     2. Call function that will calculate the final matrice
@@ -806,149 +806,167 @@ def getSimAmpliFig(self):
     img_date_string = dataset['img_date'][i]
 
 
-
-    #----- create 3d shape, project matrice along plane, compute space between points to calculate final matrice ---#
-
-    theta_edifice = math.atan((Rcald - Rbase)/(Zbase - Zvolc))
-    ind =  np.where((X**2 + Y**2) <= Rbase**2)
-    Z[ind] = (Rbase / math.tan(theta_edifice)) - np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_edifice))**2)
-
-    # inverted cone calderaZ
-    theta_cald = math.atan((R_P2 - Rcald)/(Zvolc - ZP2))
-    ind =  np.where((X**2 + Y**2) <= Rcald**2)
-    Z[ind] = Zvolc - Zbase + (Rcald/math.tan(theta_cald)) + np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_cald))**2)
-    Z = Z + Zbase
-
-    # platform P2
-    ind =  np.where((X**2 + Y**2) <= R_P2**2)
-    Z[ind] = ZP2
-
-    # crater cylinder
-    ind =  np.where((((X - decalX)**2) + Y**2) <= Rcrat**2)
-    Z[ind] = Z[ind] - (Beta * (ZP2 - ZBotcrat))
-
-    # # crater inverted cone
-    print("Rcrat, Alpha, ZP2, ZBotcrat, Beta = ")
-    print(Rcrat, Alpha, ZP2, ZBotcrat, Beta)
-    theta_crat = math.atan(np.float64(Rcrat * (Alpha - 1))/(ZP2 - ZBotcrat)*(1 - Beta))
-    print("theta_crat = ", theta_crat)
-    Z[ind] = Z[ind] + (Rcrat/math.tan(theta_crat)) + np.sqrt(((X[ind] - decalX)**2 + Y[ind]**2)/(math.tan(theta_crat)**2))
-    # # crater flat bottom
-    ind =  np.where(((X - decalX)**2 + Y**2) <= (Alpha * Rcrat)**2)
-    Z[ind] = ZBotcrat
-
-
-    #------ Projection -----#
-
     incid = math.radians(incid_deg)
     incidir = [math.sin(incid), 0, math.cos(incid)]
     M = [0,0,Zvolc]
 
-    # projection line of interest
-    ind = np.where(abs(X - decalX) == min(abs(x - decalX)))
-    proj = proj_ortho(np.array([X[ind], Y[ind], Z[ind]]), M[2], incid)         # !!! not same indice as in matlab
-    ind2 = np.where(abs(X) == min(abs(x)))
-    proj2 = proj_ortho(np.array([X[ind2], Y[ind2], Z[ind2]]), M[2], incid)         # !!! not same indice as in matlab
+    #----- Define ellipse ----#
 
-    # projection of all points (X,Y,Z)
-    n, p = Z.shape
-
-    fullsize = n * p
-    Xr = X.reshape(fullsize, 1)
-    Yr = Y.reshape(fullsize, 1)
-    Zr = Z.reshape(fullsize, 1)
-
-    points2proj = np.array([Xr, Yr, Zr])
-    pointsproj = proj_ortho(points2proj, M[2], incid)
-
-    Xp = pointsproj[0]
-    Yp = pointsproj[1]
-    Zp = pointsproj[2]
-
-    Xproj = Xp.reshape(n, p)
-    Yproj = Yp.reshape(n, p)
-    Zproj = Zp.reshape(n, p)
+    t = np.linspace(0, 2*np.pi, 1000)
+    caldera = [Rcald*np.cos(t), Rcald*np.sin(t), t*0+Zvolc ]
+    P2 = [R_P2*np.cos(t), R_P2*np.sin(t), t*0+ZP2 ]
+    crat = [Rcrat*np.cos(t)+decalX, Rcrat*np.sin(t), t*0+ZP2 ]
+    interm = [Rcrat*np.cos(t)+decalX, Rcrat*np.sin(t), t*0+ZP2-(ZP2-ZBotcrat)*Beta]
+    bot = [Alpha*Rcrat*np.cos(t)+decalX,Alpha*Rcrat*np.sin(t),t*0+ZBotcrat]
+    base = [Rbase*np.cos(t),Rbase*np.sin(t),t*0+Zbase]
 
 
-    #------ Compute distance for simulated amplitude -----#
-
-
-    # initialisation
-    Dist = np.zeros(Z.shape)
-    Distcum = np.zeros(Z.shape)
-    Distnorm = np.zeros(Z.shape)
-
-    for k in range(1, p):
-        # compute distance topo between two consecutive points for all raws
-        Dist[:,k] = np.sqrt(((Z[k,:] - Z[k-1, :])**2 + (X[k,:] - X[k-1, :])**2))
-        # compute cumulative distance since the beginning of the profiles
-        Distcum[:,k] = Distcum[:, k-1] + Dist[:,k]
-
-    maxdistcum = np.max(Distcum,1) # compute distance max of each profile   # !!! not same indice as in matla
-
-
-    for k in range(0, n):
-        # normalize Dist with distance max of each profile
-        Distnorm[k,:] = np.divide(Dist[k,:], maxdistcum[k])
+    # project ellipse
+    caldera_proj = proj_ortho(np.array(caldera), M[2], incid) 
+    P2_proj = proj_ortho(np.array(P2), M[2], incid) 
+    crat_proj = proj_ortho(np.array(crat), M[2], incid) 
+    interm_proj = proj_ortho(np.array(interm), M[2], incid) 
+    bot_proj = proj_ortho(np.array(bot), M[2], incid) 
+    base_proj = proj_ortho(np.array(base), M[2], incid) 
 
 
 
-    # # compute vector between each projected point and fixed point M
+    if init:
+        print("test calculate sim ampli")
+        #----- create 3d shape, project matrice along plane, compute space between points to calculate final matrice ---#
 
-    pointsproj_f = pointsproj.transpose()
-    pointsproj_f = pointsproj_f.reshape(fullsize, 3)
-    M_np = np.array(M)
-    M_np = M_np.reshape(1, 3)
-    rep_M = np.tile(M_np, (fullsize, 1))
-    Vec = np.subtract(pointsproj_f, rep_M)
+        theta_edifice = math.atan((Rcald - Rbase)/(Zbase - Zvolc))
+        ind =  np.where((X**2 + Y**2) <= Rbase**2)
+        Z[ind] = (Rbase / math.tan(theta_edifice)) - np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_edifice))**2)
+
+        # inverted cone calderaZ
+        theta_cald = math.atan((R_P2 - Rcald)/(Zvolc - ZP2))
+        ind =  np.where((X**2 + Y**2) <= Rcald**2)
+        Z[ind] = Zvolc - Zbase + (Rcald/math.tan(theta_cald)) + np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_cald))**2)
+        Z = Z + Zbase
+
+        # platform P2
+        ind =  np.where((X**2 + Y**2) <= R_P2**2)
+        Z[ind] = ZP2
+
+        # crater cylinder
+        ind =  np.where((((X - decalX)**2) + Y**2) <= Rcrat**2)
+        Z[ind] = Z[ind] - (Beta * (ZP2 - ZBotcrat))
+
+        # # crater inverted cone
+        theta_crat = math.atan(np.float64(Rcrat * (Alpha - 1))/(ZP2 - ZBotcrat)*(1 - Beta))
+        Z[ind] = Z[ind] + (Rcrat/math.tan(theta_crat)) + np.sqrt(((X[ind] - decalX)**2 + Y[ind]**2)/(math.tan(theta_crat)**2))
+        # # crater flat bottom
+        ind =  np.where(((X - decalX)**2 + Y**2) <= (Alpha * Rcrat)**2)
+        Z[ind] = ZBotcrat
 
 
-    # # compute scalar product of Vec with direction of incidence (distance along range)
-    distproj = np.zeros((fullsize, 1))
-    for k in range(0, fullsize):
-        distproj[k,:] = np.dot(Vec[k,:], incidir)
-
-    Distproj = distproj.reshape(n, p)
-    Distproj = Distproj.transpose()
-
-    mindistproj = np.min(np.min(Distproj))
-    maxdistproj = np.max(np.max(Distproj))
-
-
-    distotprojforinterp = np.linspace(mindistproj, maxdistproj, ech2) # interpole range regular sampling
-    Matdist = np.zeros((n, p, ech2))
-
-    for k in range(0, n):
-        distprojk = Distproj[k,:]
-        mindistprojk = np.min(distprojk)
-        maxdistprojk = np.max(distprojk)
-        distotproj = np.linspace(mindistproj, maxdistproj, ech2)
-        for l in range(1, p):
-            dist1 = distprojk[l-1]
-            dist2 = distprojk[l]
-            if (dist1 < dist2):
-                ind = np.where((distotproj > dist1) & (distotproj <= dist2))
-            else:
-                ind = np.where((distotproj <= dist1) & (distotproj > dist2))
-
-            Matdist[k,l,ind] = Distnorm[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)
+        #------ Projection -----#
 
 
 
-    # # Compute simulated amplitude
-    MATDIST = np.zeros((n, ech2))
-    MATDIST[:,:] = np.sum(Matdist, 1)
+        # projection line of interest
+        ind = np.where(abs(X - decalX) == min(abs(x - decalX)))
+        proj = proj_ortho(np.array([X[ind], Y[ind], Z[ind]]), M[2], incid)         # !!! not same indice as in matlab
+        ind2 = np.where(abs(X) == min(abs(x)))
+        proj2 = proj_ortho(np.array([X[ind2], Y[ind2], Z[ind2]]), M[2], incid)         # !!! not same indice as in matlab
+
+        # projection of all points (X,Y,Z)
+        n, p = Z.shape
+
+        fullsize = n * p
+        Xr = X.reshape(fullsize, 1)
+        Yr = Y.reshape(fullsize, 1)
+        Zr = Z.reshape(fullsize, 1)
+
+        points2proj = np.array([Xr, Yr, Zr])
+        pointsproj = proj_ortho(points2proj, M[2], incid)
+
+        Xp = pointsproj[0]
+        Yp = pointsproj[1]
+        Zp = pointsproj[2]
+
+        Xproj = Xp.reshape(n, p)
+        Yproj = Yp.reshape(n, p)
+        Zproj = Zp.reshape(n, p)
 
 
-    print(MATDIST.shape)
+        #------ Compute distance for simulated amplitude -----#
 
-    # if (re.search("Ascending Right", MODE) or (re.search("Descending Left", MODE))):
-    if incid_deg < 0:
-        MATDIST = np.fliplr(MATDIST)
-        sign= -1
-    else:
-        
-        sign = 1
+
+        # initialisation
+        Dist = np.zeros(Z.shape)
+        Distcum = np.zeros(Z.shape)
+        Distnorm = np.zeros(Z.shape)
+
+        for k in range(1, p):
+            # compute distance topo between two consecutive points for all raws
+            Dist[:,k] = np.sqrt(((Z[k,:] - Z[k-1, :])**2 + (X[k,:] - X[k-1, :])**2))
+            # compute cumulative distance since the beginning of the profiles
+            Distcum[:,k] = Distcum[:, k-1] + Dist[:,k]
+
+        maxdistcum = np.max(Distcum,1) # compute distance max of each profile   # !!! not same indice as in matla
+
+
+        for k in range(0, n):
+            # normalize Dist with distance max of each profile
+            Distnorm[k,:] = np.divide(Dist[k,:], maxdistcum[k])
+
+
+
+        # # compute vector between each projected point and fixed point M
+
+        pointsproj_f = pointsproj.transpose()
+        pointsproj_f = pointsproj_f.reshape(fullsize, 3)
+        M_np = np.array(M)
+        M_np = M_np.reshape(1, 3)
+        rep_M = np.tile(M_np, (fullsize, 1))
+        Vec = np.subtract(pointsproj_f, rep_M)
+
+
+        # # compute scalar product of Vec with direction of incidence (distance along range)
+        distproj = np.zeros((fullsize, 1))
+        for k in range(0, fullsize):
+            distproj[k,:] = np.dot(Vec[k,:], incidir)
+
+        Distproj = distproj.reshape(n, p)
+        Distproj = Distproj.transpose()
+
+        mindistproj = np.min(np.min(Distproj))
+        maxdistproj = np.max(np.max(Distproj))
+
+
+        self.distotprojforinterp = np.linspace(mindistproj, maxdistproj, ech2) # interpole range regular sampling
+        Matdist = np.zeros((n, p, ech2))
+
+        for k in range(0, n):
+            distprojk = Distproj[k,:]
+            mindistprojk = np.min(distprojk)
+            maxdistprojk = np.max(distprojk)
+            distotproj = np.linspace(mindistproj, maxdistproj, ech2)
+            for l in range(1, p):
+                dist1 = distprojk[l-1]
+                dist2 = distprojk[l]
+                if (dist1 < dist2):
+                    ind = np.where((distotproj > dist1) & (distotproj <= dist2))
+                else:
+                    ind = np.where((distotproj <= dist1) & (distotproj > dist2))
+
+                Matdist[k,l,ind] = Distnorm[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)
+
+
+
+        # # Compute simulated amplitude
+        MATDIST = np.zeros((n, ech2))
+        MATDIST[:,:] = np.sum(Matdist, 1)
+
+
+        if incid_deg < 0:
+            self.MATDIST = np.fliplr(MATDIST)
+            self.sign= -1
+        else:      
+            self.sign = 1
+            self.MATDIST = MATDIST
 
 
     #------ Plot stuff -----#
@@ -973,14 +991,24 @@ def getSimAmpliFig(self):
     ymax = self.SAR_width - center_y
 
     # Manage pixel ticks with command extend and the brightness with vmin - vmax
-    range_ra = sign*distotprojforinterp/slra
+    range_ra = self.sign*self.distotprojforinterp/slra
     range_az = y/azim
-    mean_val = np.mean(MATDIST)
+    mean_val = np.mean(self.MATDIST)
     vmin = mean_val - (80/100 * mean_val)
     vmax = mean_val + (150/100 * mean_val)
-    ax.imshow(MATDIST, cmap='Greys_r', vmin=vmin, vmax=vmax, extent=[np.min(range_ra),np.max(range_ra), range_az[0] ,range_az[-1]], aspect='auto')
+    ax.imshow(self.MATDIST, cmap='Greys_r', vmin=vmin, vmax=vmax, extent=[np.min(range_ra),np.max(range_ra), range_az[0] ,range_az[-1]], aspect='auto')
     # ax.plot_surface(X, Y, Z, alpha=0.5, color='b')
     # ax.plot_surface(Xproj, Yproj, Zproj, alpha=0.5, color='r')
+
+    print(caldera_proj)
+    if self.pushButton_ellipse_simamp.isChecked():
+        print("display ellipse on simulated amplitude")
+        ax.plot(caldera_proj[0,:]/abs(math.sin(incid))/slra , caldera_proj[1,:]/azim, color='blue')
+        ax.plot(P2_proj[0,:]/abs(math.sin(incid))/slra , P2_proj[1,:]/azim, color='skyblue')
+        ax.plot(crat_proj[0,:]/abs(math.sin(incid))/slra , crat_proj[1,:]/azim, color='red')
+        ax.plot(interm_proj[0,:]/abs(math.sin(incid))/slra , interm_proj[1,:]/azim, color='orange')
+        ax.plot(bot_proj[0,:]/abs(math.sin(incid))/slra , bot_proj[1,:]/azim, color='magenta')
+        ax.plot(base_proj[0,:]/abs(math.sin(incid))/slra , base_proj[1,:]/azim, color='k')
 
 
     # Crop the image to calcluted coordinate from original SAR image

@@ -54,7 +54,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_pickSAR_previous.clicked.connect(self.pickSARPrev)
 		self.pushButton_pickSAR_save.clicked.connect(self.pickSARSave)
 		self.pushButton_update_simamp.clicked.connect(self.initiateSimAmpliPlot)
+		self.pushButton_ellipse_simamp.clicked.connect(self.ellipseSimAmpliPlot)
 		self.pushButton_update_view3D.clicked.connect(self.initiateView3DPlot)
+
 
 		# manage menubar
 		self.actionProfile.toggled.connect(self.dockWidget_profile.setVisible)
@@ -100,6 +102,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.SAR_change.setTickInterval(1)
 		# Activate pushButton Ellipse
 		self.pushButton_ellipse.setEnabled(True)
+		self.pushButton_ellipse_simamp.setEnabled(True)
 		self.pushButton_filtered_SAR.setEnabled(True)
 		self.pushButton_pick_SAR.setEnabled(True)
 
@@ -370,34 +373,63 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 
 	def initiateSimAmpliPlot(self):
-			""" Function that display the simulated amplitude image
-				1: Execute "Writecsv_picking_results.py" to get the necessary data
-				2: Call 
-				2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
-				"""
+		""" Function that display the simulated amplitude image
+			1: Execute "Writecsv_picking_results.py" to get the necessary data
+			2: Call 
+			2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
+			"""
 
-			# Close current figure if it exists:
-			print(" initiate amplitude simulation plot")
-			if self.rm_canvas_simampli:
-				self.canvas_sim_ampli.close()
-				self.toolbar_sim_ampli.close()
+		# Close current figure if it exists:
+		print(" initiate amplitude simulation plot")
+		if self.rm_canvas_simampli:
+			self.canvas_sim_ampli.close()
+			self.toolbar_sim_ampli.close()
 
-			self.rm_canvas_simampli = True
+		self.rm_canvas_simampli = True
 
-			# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
-			convert_csv(self.csv_file)
+		# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
+		convert_csv(self.csv_file)
 
 
-			# Get matplotlib figure objetct and min/max value of amplitude image
-			self.canvas_sim_ampli = getSimAmpliFig(self)
-			# Create tool bar
-			self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
+		# Get matplotlib figure objetct and min/max value of amplitude image
+		self.canvas_sim_ampli = getSimAmpliFig(self, init=True)
+		# Create tool bar
+		self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
 
-			# Add object to layout
-			self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
-			self.SimAmp_Layout.addWidget(self.toolbar_sim_ampli)
-			# Draw the figure
-			self.canvas_sim_ampli.draw()
+		# Add object to layout
+		self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
+		self.SimAmp_Layout.addWidget(self.toolbar_sim_ampli)
+		# Draw the figure
+		self.canvas_sim_ampli.draw()
+
+	def ellipseSimAmpliPlot(self):
+		""" function which display or hide ellipse on the sim ampli plot without recalculation of entire matrice MATDIST"""
+
+		# Close current figure if it exists:
+		print(" initiate amplitude simulation plot")
+		if self.rm_canvas_simampli:
+			self.canvas_sim_ampli.close()
+			self.toolbar_sim_ampli.close()
+
+		self.rm_canvas_simampli = True
+
+		# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
+		convert_csv(self.csv_file)
+
+
+		# Get matplotlib figure objetct and min/max value of amplitude image
+		self.canvas_sim_ampli = getSimAmpliFig(self)
+		# Create tool bar
+		self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
+
+		# Add object to layout
+		self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
+		self.SimAmp_Layout.addWidget(self.toolbar_sim_ampli)
+		# Draw the figure
+		self.canvas_sim_ampli.draw()		
+
+
+
 
 
 
