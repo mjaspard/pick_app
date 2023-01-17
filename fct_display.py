@@ -6,38 +6,9 @@ import os, math, re, time, sys
 import datetime as datetime
 from osgeo import gdal
 from PyQt5 import QtCore
+from fct_subdisplay import *
 
 
-
-# import numpy as np
-# import os as os
-# from netCDF4 import Dataset
-# from mpl_toolkits import mplot3d
-# from mpl_toolkits.mplot3d import axes3d
-# from matplotlib import patches
-# import matplotlib.pyplot as plt
-
-
-
-
-
-
-# def displayTest(self):
-
-#     figure = Figure()
-#     axes = figure.gca()
-#     axes.set_title("My Plot")
-#     x = np.linspace(1, 10)
-#     y = np.linspace(1, 10)
-#     y1 = np.linspace(11, 20)
-#     axes.plot(x, y, "-k", label="first one")
-#     axes.plot(x, y1, "-b", label="second one")
-#     axes.legend()
-#     axes.grid(True)
-#     # Canvas creation
-#     canvas = FigureCanvas(figure)
-
-#     return canvas
 
 #===============================================================================================================
 #====================    AMPLITUDE IMAGE     ===================================================================
@@ -123,8 +94,9 @@ def getSARFig(self):
     nCols  = Raster.RasterXSize      # how many columns
     dType  = Band.DataType          # the datatype for this band
 
-    # print("nBands, nRows, nCols, dType = ", nBands, nRows, nCols, dType)
+    print("nBands, nRows, nCols, dType = ", nBands, nRows, nCols, dType)
     self.SAR_width = nRows
+    self.SAR_height = nCols
     # Extract band
     inputArray = (np.array(Band.ReadAsArray()**expo_greyscale))
 
@@ -515,9 +487,9 @@ def getProfileFig(self):
 
     # Create event when mouse clicking on profile
     # self.figure_profile.canvas.mpl_connect('button_press_event', lambda event: onclick_profile(self, event))
-    self.figure_profile.canvas.mpl_connect('button_press_event', lambda event: _on_click(event, self))
-    self.figure_profile.canvas.mpl_connect('button_release_event', lambda event: _on_release(event, self))
-    self.figure_profile.canvas.mpl_connect('motion_notify_event', lambda event: _on_motion(event, self))
+    self.figure_profile.canvas.mpl_connect('button_press_event', lambda event: on_click(event, self))
+    self.figure_profile.canvas.mpl_connect('button_release_event', lambda event: on_release(event, self))
+    self.figure_profile.canvas.mpl_connect('motion_notify_event', lambda event: on_motion(event, self))
 
 
 
@@ -537,13 +509,12 @@ def getProfileFig(self):
 
 
 #===============================================================================================================
-#====================    SIMULATED AMPLITUDE     ===============================================================
+#====================   3D VIEW    ===============================================================
 #===============================================================================================================
 
 
 
-
-def getSimAmpliFig(self):
+def getView3dFig(self):
     """ Function to draw Simulated amplitude based on profile"""
 
   # File name
@@ -686,552 +657,355 @@ def getSimAmpliFig(self):
 
 
     # Create figure that will be return to the mainwindow
-    self.figure_sim_ampli = Figure()
-    self.figure_sim_ampli.set_figwidth(100)
-    self.figure_sim_ampli.set_figheight(200)
-
-    #===== FIRST PLOT =====#
-    # self.ax2 = self.figure_sim_ampli.add_subplot(211) 
-    # # Create 1 curve that will react to mouse event to help user modifying the profile
-    # # All the other plotwill be superposed on it with color code
-    # self._line2 = lines.Line2D(X_profile_all ,Y_profile_all , marker="o", color="grey", markeredgecolor="grey", markerfacecolor="grey")
-    # # self.ax2.add_line(self._line2)
-    # # # Set fixed data on profile with color related to ellipse on amplitude image
-    # # # self.ax2.set_title("Simulated Amplitude")
-    # # self.ax2.set_xlim(-2500, 2500)  # self.SAR_width = number of pixels in azimut direction for this image
-    # # self.ax2.set_ylim(2200, 4200)
-    # # self.ax2.set_xlabel('[m]')
-    # # self.ax2.set_ylabel('[m]')
-    # # Sampling of profile on 100 points
-    # x_values = self._line.get_xdata()
-    # y_values = self._line.get_ydata()
-    # # create a list of evenly spaced x values
-    # num_samples = 200
-    # x_samples = np.linspace(min(x_values), max(x_values), num_samples)
-    # # interpolate the y values at these x values
-    # y_samples = np.interp(x_samples, x_values, y_values)
-    # # create a list of points
-    # points = [(x, y) for x, y in zip(x_samples, y_samples)]
-    # # print(points)
-    # # self.ax2.plot(x_samples,y_samples,marker="o", markeredgecolor="orange", markersize=2)
-    # # From Delphine
-    # self.ax2.set_aspect(abs(np.sin(np.deg2rad(incidence_angle_deg))) * azimuth_pixel_size/range_pixel_size)
+    self.figure_view_3d = Figure()
+    self.figure_view_3d.set_figwidth(100)
+    self.figure_view_3d.set_figheight(200)
 
 
 
-    #======================== FIRST PLOT : Ctrater in 3d    ========================#
+    print("print 3d view")
+    self.ax2 = self.figure_view_3d.add_subplot(111, projection='3d') 
+    # n1 is number of samples to create circle
+    # n2, number of sample to link both circle
 
-    if self.pushButton_3d.isChecked():
+    n11 = 40
+    n21 = 20
 
+    n12 = 20
+    n22 = 10
 
-        print("print 3d view")
-        self.ax2 = self.figure_sim_ampli.add_subplot(111, projection='3d') 
-        # n1 is number of samples to create circle
-        # n2, number of sample to link both circle
+   
+    # Draw Outside of caldera
+    X, Y, Z = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
+    self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
+    # Caldera ring
+    Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
+    self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
 
-        n11 = 40
-        n21 = 20
+    # Draw cone from caldera ring to P2 outer ring
+    X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
+    self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
+    # Draw P2 Outer ring
+    Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
+    self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
 
-        n12 = 20
-        n22 = 10
+    # Draw P2, need to use another function as both circle are at the same height but not centered the same
+    rayon_inner = diameter_crater/2
+    # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
+    # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
+    X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
+    self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
 
-       
-        # Draw Outside of caldera
-        X, Y, Z = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
-        self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
-        # Caldera ring
-        Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
-        self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
-
-        # Draw cone from caldera ring to P2 outer ring
-        X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
-        self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
-        # Draw P2 Outer ring
-        Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
-        self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
-
-        # Draw P2, need to use another function as both circle are at the same height but not centered the same
-        rayon_inner = diameter_crater/2
-        # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
-        # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
-        X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
-        self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
-
-        # Draw P2 inner ring (lake limit)
-        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
-        self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
-
-        print("delta_x in 3D view = ", delta_x)
-        # Draw cone from P2 level to vertical limit inside the crater
-        X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
-        self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
-        # Draw middle bottom crater ring
-        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
-        self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
-
-        # Draw cone from middle of crater to bottom of crater
-        rayon_inner_bottom = diameter_bottom/2
-        X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
-        self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-
-
-        # Draw bottom surface
-        X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
-        self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-        # Draw Bottom ring
-        Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
-        self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
-
-        self.ax2.set_xlim(-1000, 1000)
-        self.ax2.set_ylim(-1000, 1000)
-
-        # print(dir(self.figure_sim_ampli))
-
-        self.ax2.set_ylabel('$Azimuth direction$', fontsize=20, rotation=150)
-        self.ax2.set_xlabel('$Range direction$', fontsize=20, rotation=150)
+    # Draw P2 inner ring (lake limit)
+    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
+    self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
 
+    print("delta_x in 3D view = ", delta_x)
+    # Draw cone from P2 level to vertical limit inside the crater
+    X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
+    self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
+    # Draw middle bottom crater ring
+    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
+    self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
 
-        X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-        Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
+    # Draw cone from middle of crater to bottom of crater
+    rayon_inner_bottom = diameter_bottom/2
+    X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
+    self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
 
 
+    # Draw bottom surface
+    X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
+    self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
+    # Draw Bottom ring
+    Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
+    self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
 
+    self.ax2.set_xlim(-1000, 1000)
+    self.ax2.set_ylim(-1000, 1000)
 
+    # print(dir(self.figure_view_3d))
 
+    self.ax2.set_ylabel('$Azimuth$', fontsize=15, rotation=150)
+    self.ax2.set_xlabel('$Range$', fontsize=15, rotation=150)
 
 
+    X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
+    Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
 
-    #======================== SECOND PLOT ========================#
 
-    elif self.pushButton_profile.isChecked():
 
-        import matplotlib.path as mpath
-        import matplotlib.transforms as transforms
 
-        print("print profile")
-
-
-
-    # # Rotate Profile
-        print("print profile")
-        self.ax2 = self.figure_sim_ampli.add_subplot(211) 
-        self.ax2.set_title("Rotate profile: angle = {} deg".format(incidence_angle_deg))
-
-        self._line2 = lines.Line2D(X_profile_all ,Y_profile_all , marker="o", color="grey", markeredgecolor="grey", markerfacecolor="grey", alpha=0.5)
-        # self.ax2.add_line(self._line2)
-        self.ax2.set_xlim(-2500, 2500)  # self.SAR_width = number of pixels in azimut direction for this image
-        self.ax2.set_ylim(2200, 4200)
-        self.ax2.set_xlabel('[m]')
-        self.ax2.set_ylabel('[m]')   
-        # Sampling of profile on 100 points
-        x_values = self._line.get_xdata()
-        y_values = self._line.get_ydata()    
-        # create a list of evenly spaced x values
-        num_samples = 200
-        x_samples = np.linspace(min(x_values), max(x_values), num_samples)
-        # interpolate the y values at these x values
-        y_samples = np.interp(x_samples, x_values, y_values)
-        # create a list of points
-        points = [(x, y) for x, y in zip(x_samples, y_samples)]
-        # print(points)
-        self.ax2.plot(x_samples,y_samples,marker="o", markeredgecolor="grey", markersize=1)
-
-        # Format as vertices to allow path
-        vertices = list(zip(x_samples,y_samples))
-        # print("vertices = ", vertices)
-        # Create a Path object from the vertices
-        path = mpath.Path(vertices)
-        # Create a transformation object with center the middle of the crater
-        rotation = -incidence_angle_deg
-        trans = transforms.Affine2D().rotate_deg_around(0, Iy, rotation)
-        # Transform the Path object using the transformation
-        transformed_path = trans.transform_path(path)
-        # Get the transformed coordinates of the polygon's points
-        transformed_vertices = transformed_path.vertices
-        # Print the transformed coordinates
-        # print(transformed_vertices)
-        # Extract x and y array from rotated vertices
-        x2, y2 = zip(*transformed_vertices)
-        # Plot it
-        # self.ax2.plot(x2,y2,marker=".", color="orange", markersize=1)
-        self.ax2.scatter(x2,y2, color="red", marker='.', edgecolors="k", linewidths=0.5)
-
-
-        print("y_samples = ", y_samples)
-        print("typeof y_samples = ", type(y_samples))
-        print("typeof y_samples = ", type(y_samples[0]))
-  
-
-        print("y2 = ", y_samples)
-        print("typeof y2 = ", type(y2))
-        print("typeof y2 = ", type(y2[0]))        
-
-        # Create Histogram
-        self.ax3 = self.figure_sim_ampli.add_subplot(212)
-        self.ax3.set_title("Histogram")
-        bins = 100 # Number of samples in range
-        self.ax3.hist(y_samples, bins=bins, orientation='vertical', color="grey", alpha=0.6)
-        # self.ax3.hist(y2, bins=bins, orientation='vertical', color="red", alpha=0.3)
-
-    # #===== THIRD PLOT =====#
-
-
-    # if self.pushButton_simamp.isChecked():
-
-
-    #     print("print 3d view")
-    #     self.ax2 = self.figure_sim_ampli.add_subplot(111, projection='3d') 
-    #     # n1 is number of samples to create circle
-    #     # n2, number of sample to link both circle
-
-
-    #     # Map footprint in meters
-    #     xmin, xmax = -3500, 3500
-    #     ymin = -3500, 3500
-    #     ech = 501     # x and y sampling number
-    #     subs = 5     # subsampling intervalle for plots
-    #     ech2 = 1000     # range sampling for amplitude computation
-
-
-    #     # Define grid
-    #     x,y = np.linspace(xmin,xmax, ech), np.linspace(ymin,ymax, ech)
-    #     X,Y = np.meshgrid(x,y)
-    #     Z = np.zeros(len(X))        # initialise elevation at 0m everywhere
-
-
-    #     n11 = 40
-    #     n21 = 20
-
-    #     n12 = 20
-    #     n22 = 10
-
-       
-    #     # Draw Outside of caldera
-    #     X1, Y1, Z1 = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
-    #     ind = np.where
-    #     self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
-    #     # Caldera ring
-    #     Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
-    #     self.ax2.plot(Xc, Yc, Zc, color='blue', linewidth=3)
-
-    #     # Draw cone from caldera ring to P2 outer ring
-    #     X, Y, Z = get_cone_data(0, 0, Ix, Kx, Iy, Ky, n11, n21)
-    #     self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.3)
-    #     # Draw P2 Outer ring
-    #     Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Kx, Ky)
-    #     self.ax2.plot(Xc, Yc, Zc, color='skyblue', linewidth=3)
-
-    #     # Draw P2, need to use another function as both circle are at the same height but not centered the same
-    #     rayon_inner = diameter_crater/2
-    #     # get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2)
-    #     # print("get_perforated_surface: ",0, 0, delta_x, 0, Kx, rayon_inner, Ky, n11, n21)
-    #     X2, Y2, Z2 = get_perforated_surface(0, 0, delta_x, delta_az, Kx, rayon_inner , Ky, n11, n21)
-    #     self.ax2.scatter(X2, Y2, Z2, color='grey', linewidth=1, alpha=0.3)
-
-    #     # Draw P2 inner ring (lake limit)
-    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
-    #     self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
-
-    #     print("delta_x in 3D view = ", delta_x)
-    #     # Draw cone from P2 level to vertical limit inside the crater
-    #     X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
-    #     self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
-    #     # Draw middle bottom crater ring
-    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Uy)
-    #     self.ax2.plot(Xc, Yc, Zc, color='orange', linewidth=3)
-
-    #     # Draw cone from middle of crater to bottom of crater
-    #     rayon_inner_bottom = diameter_bottom/2
-    #     X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner_bottom , Uy, Ey, n12, n22)
-    #     self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-
-
-    #     # Draw bottom surface
-    #     X2, Y2, Z2= get_cone_data(delta_x, delta_az, rayon_inner_bottom, 1, Ey, Ey, n12, n22)
-    #     self.ax2.plot_wireframe(X2, Y2, Z2, color='grey', alpha=0.3)
-    #     # Draw Bottom ring
-    #     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
-    #     self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
-
-    #     self.ax2.set_xlim(-1000, 1000)
-    #     self.ax2.set_ylim(-1000, 1000)
-
-    #     # print(dir(self.figure_sim_ampli))
-
-    #     self.ax2.set_ylabel('$Azimuth direction$', fontsize=20, rotation=150)
-    #     self.ax2.set_xlabel('$Range direction$', fontsize=20, rotation=150)
-
-
-    #     X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    #     Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
-
-
-
-
-
-
-    self.figure_sim_ampli.tight_layout(pad=100.0)
+    self.figure_view_3d.tight_layout(pad=100.0)
     # Canvas creation
-    self.canvas_sim_ampli = FigureCanvas(self.figure_sim_ampli)
+    self.canvas_view_3d = FigureCanvas(self.figure_view_3d)
 
 
     # self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
     # self.canvas.setFocus()
 
-    return self.canvas_sim_ampli
-
-
-
-
+    return self.canvas_view_3d
 
 
 
 #===============================================================================================================
-#====================    FUNCTION     ==========================================================================
+#====================    SIMULATED AMPLITUDE     ===============================================================
 #===============================================================================================================
 
 
+def getSimAmpliFig(self):
+    """ Function that will return the canvas of simulated amplitude
+    1. Load data locally from csv file (no need somewhere else so do not use self)
+    2. Call function that will calculate the final matrice
+    3. Plot the matrice and return the canvas"""
 
-# Ellipse stuff
-def ellipse_equation_2p(top_x, top_y, bot_x, bot_y, az_pix_size, ra_pix_size, theta,t):
-    u = top_x
-    v = int((int(bot_y) - int(top_y))/2 + top_y)
-    a = int((int(bot_y) - int(top_y))/2)
-    theta_rad = (theta * (2*math.pi))/360
-    b = a*((az_pix_size*np.sin(theta_rad))/ra_pix_size)
-    # print("theta = {}, theta_rad = {}, a = {}, b = {}".format(theta, theta_rad, a, b))
-    return np.array([u+b*np.cos(t) , v+a*np.sin(t)])
+    # Load data for simulated amplitude
+    csv_file_out = self.csv_file + '_out.csv'
+    dataset = csv_to_dict(csv_file_out )
 
-def ellipse_equation(u, v, a, b, t):
-    return np.array([u+a*np.cos(t) , v+b*np.sin(t)])
-
-def ellipse_tilt_equation(u, v, a_x,a_y, b_x,b_y, t,theta):
-    a = np.sqrt((a_x-u)**2 + (a_y-v)**2)
-    b = np.sqrt((b_x-u)**2 + (b_y-v)**2)
-    return np.array([u+a*np.cos(t)*np.cos(theta) - b*np.sin(t)*np.sin(theta) , v+a*np.cos(t)*np.sin(theta)+b*np.sin(t)*np.cos(theta)])
-
-def ellipse_area(a,b):
-    return np.pi*a*b
-
-
-#================== Picking Amplitude Image (SAR) function =========================#
-
-def pick_point(self, info_str, x, y):
-    """Function that will write in the dictionary "inages_data" new coordinate of clicked point"""
-    x_str = "{}_x".format(info_str)
-    y_str = "{}_y".format(info_str)
-    # print("{} = [{}:{}]".format(info_str, x, y))
-    self.dataset[x_str][self.index_live] = round(x)
-    self.dataset[y_str][self.index_live] = round(y)
-
-
-def getPointNameFromIndex(index):
-    switcher = {
-    0: 'caldera_edgeN',
-    1: 'caldera_edgeS',
-    2: 'crater_outer_edgeN',
-    3: 'crater_inner_edgeN',
-    4: 'crater_inner_edgeS',
-    5: 'crater_topCone_edgeN',
-    6: 'crater_bottom_edgeN',
-    7: 'crater_bottom_edgeS',
-    }
-    return switcher.get(index, "nothing")
-
-
-# Events
-def on_key(event, self):
-    """ Function that will call the pickSARManagement function when clicking on the amplitude image"""
-
-
-     # Re-initialise zoom if escape pressed
-    if event.key == 'escape':
-        print("Reinitialise zoom")
-        self.lim_x = self.lim_x_or
-        self.lim_y = self.lim_y_or
-        print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
-        print("record zoom value :", self.lim_x, self.lim_y)
-        self.updateSARPlot()
-
-              
-
-def onclick(event, self):
-    """ Function that will call the pickSARManagement function when clicking on the amplitude image"""
-    # print("Mouse button is clicked: ", event.button)
-    # Check if right clic
-    if re.search('MouseButton.RIGHT', str(event.button)):
-        # Picking options mest be activated
-        if self.pushButton_pick_SAR.isChecked():
-            # Mouse must be in a place where coordinate are available
-            if event.xdata != None and event.ydata != None:
-
-                # record zoom value if anything pressed
-                # print("coordinate mouse : ", event.xdata, event.ydata)
-                self.lim_x = self.ax.get_xlim()
-                self.lim_y = self.ax.get_ylim()
-                # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
-                # print("record zoom value :", self.lim_x, self.lim_y)
-                self.SAR_zoom = True
-
-
-                # Get points to pick fron inex value
-                point_str = getPointNameFromIndex(self.pick_SAR_index)
-                pick_point(self, point_str, event.xdata, event.ydata)
-                # Update figure
-                self.updateSARPlot()
-                # update index
-                self.pick_SAR_index += 1
-                self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 9)
-                # Display new point to pick in information label
-                self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
-                # Make Save button + update sim amp checkable 
-                self.pushButton_pickSAR_save.setChecked(True)
-                self.pushButton_update_simamp.setChecked(True)
-
-
-
-#=========================== FUNCTION FOR DRAGGABLE POINTS ON PROFILE ===========================
-
-
-def _update_plot(self):
-    """ Write in dataset new value when points move on profile"""
-
-
-
-    dataset = self.dataset
+    # find line corresponding to current image 
+      # File name
     i = self.index_live
 
-    # Pixel size and incidence angle
-    azimuth_pixel_size = dataset['azimuth_pixel_size'][i]
-    range_pixel_size = dataset['range_pixel_size'][i]
-    incidence_angle_deg = dataset['incidence_angle_deg'][i]
-    incidence_angle_rad = (incidence_angle_deg * 2 * math.pi)/360
-
-        # Caldera ellipse
-
-    # Get coordinate of draggable profile
-    Kx, Ky = list(self._points[1].items())[0]
-    Ux, Uy = list(self._points[2].items())[0]
-    Ex, Ey = list(self._points[3].items())[0]
-    Fx, Fy = list(self._points[4].items())[0]
-    Vx, Vy = list(self._points[5].items())[0]
-    Lx, Ly = list(self._points[6].items())[0]
+    # Map footprint in meters
+    xmin, xmax = -3500, 3500
+    ymin, ymax = -3500, 3500
+    ech = 501     # x and y sampling number
+    subs = 5     # subsampling intervalle for plots
+    ech2 = 1000     # range sampling for amplitude computation
 
 
-
-    # rewrite original caldera point because we don't want them to be moved manually by profile (only moved by picking amplitude image)
-    Ix = self.Ix
-    Iy = self.Iy
-    Jx = self.Jx
-    Jy = self.Jy
-
-    Cx = Ux           # if both point are together, Ux is on top of Cx, so we decide to play with Dx (They must be the same in the end)
-    Dx = Vx
-
-    Cy = Ky
-    Dy = Ly
+    # Define grid
+    x,y = np.linspace(xmin,xmax, ech), np.linspace(ymin,ymax, ech)
+    Y,X = np.meshgrid(x,y)
+    Z = np.zeros(X.shape)        # initialise elevation at 0m everywhere
 
 
+    #------ Define 3D Volcano -----#
 
-   # De-centering all X axis points from middle of the caldera to original amplitude image
-    delta_ref_x = self.delta_ref_x
-    Ix += delta_ref_x 
-    Jx += delta_ref_x
-    Kx += delta_ref_x
-    Lx += delta_ref_x
-    Cx += delta_ref_x
-    Dx += delta_ref_x
-    Ux += delta_ref_x
-    Vx += delta_ref_x
-    Ex += delta_ref_x
-    Fx += delta_ref_x
+    # Cone edifice
+    Rcald = dataset['Rcald_m'][i]
+    Rbase = 2500
+    Zbase = 2500
+    Zvolc = 3460
+    R_P2 = dataset['RP2_m'][i]
+    ZP2 = Zvolc - dataset['HP2_m'][i]
+    ZBotcrat = ZP2 - dataset['H'][i]
+    Rcrat = dataset['Rcrat_m'][i]
+    Beta = dataset['Beta'][i]  # 0 conic, 1 cylinder
+    Alpha = dataset['Alpha'][i] # 0 conic, 1 cylinder
+    decalX = dataset['delta_x_m'][i]
+    # 
+    incid_deg = dataset['incidence_angle_deg'][i]
+    azim = dataset['azimuth_pixel_size'][i]
+    slra = dataset['range_pixel_size'][i]
+    MODE = "Descending Right"
+
+    filepath = dataset['filepath'][i]
+    satname = filepath.split('/')[-2]
+    img_date_string = dataset['img_date'][i]
 
 
 
-    # dataset['caldera_edgeN_y'][i] = Ix/azimuth_pixel_size
-    # dataset['caldera_edgeS_y'][i] = Jx/azimuth_pixel_size
-    Iy = Zvolc # cconstante and reference point for th rest
-    Jy = Zvolc
+    #----- create 3d shape, project matrice along plane, compute space between points to calculate final matrice ---#
+
+    theta_edifice = math.atan((Rcald - Rbase)/(Zbase - Zvolc))
+    ind =  np.where((X**2 + Y**2) <= Rbase**2)
+    Z[ind] = (Rbase / math.tan(theta_edifice)) - np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_edifice))**2)
+
+    # inverted cone calderaZ
+    theta_cald = math.atan((R_P2 - Rcald)/(Zvolc - ZP2))
+    ind =  np.where((X**2 + Y**2) <= Rcald**2)
+    Z[ind] = Zvolc - Zbase + (Rcald/math.tan(theta_cald)) + np.sqrt((X[ind]**2 + Y[ind]**2)/(math.tan(theta_cald))**2)
+    Z = Z + Zbase
+
+    # platform P2
+    ind =  np.where((X**2 + Y**2) <= R_P2**2)
+    Z[ind] = ZP2
+
+    # crater cylinder
+    ind =  np.where((((X - decalX)**2) + Y**2) <= Rcrat**2)
+    Z[ind] = Z[ind] - (Beta * (ZP2 - ZBotcrat))
+
+    # # crater inverted cone
+    print("Rcrat, Alpha, ZP2, ZBotcrat, Beta = ")
+    print(Rcrat, Alpha, ZP2, ZBotcrat, Beta)
+    theta_crat = math.atan(np.float64(Rcrat * (Alpha - 1))/(ZP2 - ZBotcrat)*(1 - Beta))
+    print("theta_crat = ", theta_crat)
+    Z[ind] = Z[ind] + (Rcrat/math.tan(theta_crat)) + np.sqrt(((X[ind] - decalX)**2 + Y[ind]**2)/(math.tan(theta_crat)**2))
+    # # crater flat bottom
+    ind =  np.where(((X - decalX)**2 + Y**2) <= (Alpha * Rcrat)**2)
+    Z[ind] = ZBotcrat
 
 
-    # Crater outer ellipse
+    #------ Projection -----#
 
-    h1 = Iy - Ky
-    a1 = h1*np.cos(incidence_angle_rad)
-    if self.current_orbit_desc:
-        a1 = -abs(a1)
-    diameter_P2 = (Lx - Kx)/azimuth_pixel_size
-    center_y_mem = ((dataset['crater_outer_edgeS_y'][i] - dataset['crater_outer_edgeN_y'][i])/2) + dataset['crater_outer_edgeN_y'][i]
-    # print("diameter_P2 = ", diameter_P2)
-    # print("center_y_mem = ", center_y_mem)
-    dataset['crater_outer_edgeN_x'][i] = (a1/range_pixel_size) + dataset['caldera_edgeN_x'][i] 
-    dataset['crater_outer_edgeN_y'][i] = center_y_mem - (diameter_P2/2)
-    # dataset['crater_outer_edgeS_x'][i] = dataset['crater_outer_edgeN_x'][i]
-    # dataset['crater_outer_edgeS_y'][i] = center_y_mem - (diameter_P2/2)
+    incid = math.radians(incid_deg)
+    incidir = [math.sin(incid), 0, math.cos(incid)]
+    M = [0,0,Zvolc]
 
-    # Crater inner ellipse (need to record previous center position for crater)
-    caldera_center = ((Jx - Ix)/2) + Ix
-    crater_center = ((Dx - Cx)/2) + Cx
-    if self.current_orbit_desc:
-        delta_x = caldera_center - crater_center
+    # projection line of interest
+    ind = np.where(abs(X - decalX) == min(abs(x - decalX)))
+    proj = proj_ortho(np.array([X[ind], Y[ind], Z[ind]]), M[2], incid)         # !!! not same indice as in matlab
+    ind2 = np.where(abs(X) == min(abs(x)))
+    proj2 = proj_ortho(np.array([X[ind2], Y[ind2], Z[ind2]]), M[2], incid)         # !!! not same indice as in matlab
+
+    # projection of all points (X,Y,Z)
+    n, p = Z.shape
+
+    fullsize = n * p
+    Xr = X.reshape(fullsize, 1)
+    Yr = Y.reshape(fullsize, 1)
+    Zr = Z.reshape(fullsize, 1)
+
+    points2proj = np.array([Xr, Yr, Zr])
+    pointsproj = proj_ortho(points2proj, M[2], incid)
+
+    Xp = pointsproj[0]
+    Yp = pointsproj[1]
+    Zp = pointsproj[2]
+
+    Xproj = Xp.reshape(n, p)
+    Yproj = Yp.reshape(n, p)
+    Zproj = Zp.reshape(n, p)
+
+
+    #------ Compute distance for simulated amplitude -----#
+
+
+    # initialisation
+    Dist = np.zeros(Z.shape)
+    Distcum = np.zeros(Z.shape)
+    Distnorm = np.zeros(Z.shape)
+
+    for k in range(1, p):
+        # compute distance topo between two consecutive points for all raws
+        Dist[:,k] = np.sqrt(((Z[k,:] - Z[k-1, :])**2 + (X[k,:] - X[k-1, :])**2))
+        # compute cumulative distance since the beginning of the profiles
+        Distcum[:,k] = Distcum[:, k-1] + Dist[:,k]
+
+    maxdistcum = np.max(Distcum,1) # compute distance max of each profile   # !!! not same indice as in matla
+
+
+    for k in range(0, n):
+        # normalize Dist with distance max of each profile
+        Distnorm[k,:] = np.divide(Dist[k,:], maxdistcum[k])
+
+
+
+    # # compute vector between each projected point and fixed point M
+
+    pointsproj_f = pointsproj.transpose()
+    pointsproj_f = pointsproj_f.reshape(fullsize, 3)
+    M_np = np.array(M)
+    M_np = M_np.reshape(1, 3)
+    rep_M = np.tile(M_np, (fullsize, 1))
+    Vec = np.subtract(pointsproj_f, rep_M)
+
+
+    # # compute scalar product of Vec with direction of incidence (distance along range)
+    distproj = np.zeros((fullsize, 1))
+    for k in range(0, fullsize):
+        distproj[k,:] = np.dot(Vec[k,:], incidir)
+
+    Distproj = distproj.reshape(n, p)
+    Distproj = Distproj.transpose()
+
+    mindistproj = np.min(np.min(Distproj))
+    maxdistproj = np.max(np.max(Distproj))
+
+
+    distotprojforinterp = np.linspace(mindistproj, maxdistproj, ech2) # interpole range regular sampling
+    Matdist = np.zeros((n, p, ech2))
+
+    for k in range(0, n):
+        distprojk = Distproj[k,:]
+        mindistprojk = np.min(distprojk)
+        maxdistprojk = np.max(distprojk)
+        distotproj = np.linspace(mindistproj, maxdistproj, ech2)
+        for l in range(1, p):
+            dist1 = distprojk[l-1]
+            dist2 = distprojk[l]
+            if (dist1 < dist2):
+                ind = np.where((distotproj > dist1) & (distotproj <= dist2))
+            else:
+                ind = np.where((distotproj <= dist1) & (distotproj > dist2))
+
+            Matdist[k,l,ind] = Distnorm[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)
+
+
+
+    # # Compute simulated amplitude
+    MATDIST = np.zeros((n, ech2))
+    MATDIST[:,:] = np.sum(Matdist, 1)
+
+
+    print(MATDIST.shape)
+
+    # if (re.search("Ascending Right", MODE) or (re.search("Descending Left", MODE))):
+    if incid_deg < 0:
+        MATDIST = np.fliplr(MATDIST)
+        sign= -1
     else:
-        delta_x = crater_center - caldera_center
-    a2 = delta_x*np.sin(incidence_angle_rad)
-    # if self.current_orbit_desc:
-    #     a2 = -abs(a2)
-    diameter_crater = (Dx - Cx)/azimuth_pixel_size
-    center_y_mem = ((dataset['crater_inner_edgeS_y'][i] - dataset['crater_inner_edgeN_y'][i])/2) + dataset['crater_inner_edgeN_y'][i]
-    # print("diameter_crater = ", diameter_crater)
-    # print("center_y_mem = ", center_y_mem)
-    dataset['crater_inner_edgeN_x'][i] = dataset['crater_outer_edgeN_x'][i] - (a2/range_pixel_size)
-    dataset['crater_inner_edgeN_y'][i] = center_y_mem - (diameter_crater/2)
-    dataset['crater_inner_edgeS_x'][i] = dataset['crater_inner_edgeN_x'][i] 
-    dataset['crater_inner_edgeS_y'][i] = center_y_mem + (diameter_crater/2)
-
-    # Middle crater
-    h2 = Cy - Uy
-    a3 = h2 * np.cos(incidence_angle_rad)
-    if self.current_orbit_desc:
-        a3 = -abs(a3) 
-    dataset['crater_topCone_edgeN_x'][i] = (a3 / range_pixel_size) + dataset['crater_inner_edgeN_x'][i]
-    dataset['crater_topCone_edgeN_y'][i] =dataset['crater_inner_edgeN_y'][i]
-    dataset['crater_topCone_edgeS_x'][i] = dataset['crater_topCone_edgeN_x'][i] 
-    dataset['crater_topCone_edgeS_y'][i] = dataset['crater_inner_edgeS_y'][i]
-
-    # Bottom crater
-    h3 = Uy -Ey
-    a4 = h3 * np.cos(incidence_angle_rad)
-    if self.current_orbit_desc:
-        a4 = -abs(a4)
-    diameter_crater_bottom = (Fx - Ex)/azimuth_pixel_size
-    dataset['crater_bottom_edgeN_x'][i] = (a4 / range_pixel_size) + dataset['crater_topCone_edgeN_x'][i]
-    dataset['crater_bottom_edgeN_y'][i] = center_y_mem - (diameter_crater_bottom/2)
-    dataset['crater_bottom_edgeS_x'][i] = dataset['crater_bottom_edgeN_x'][i] 
-    dataset['crater_bottom_edgeS_y'][i] = center_y_mem + (diameter_crater_bottom/2)
+        
+        sign = 1
 
 
+    #------ Plot stuff -----#
+
+    # Create figure that will be return to the mainwindow
+    # fig = Figure(projection='3d')
+    fig = Figure(figsize = (7,7))
+    # self.figure_view_3d.set_figwidth(100)
+    # self.figure_view_3d.set_figheight(200)
+
+    ax = fig.add_subplot(111) 
+    # ax = fig.add_subplot(111, projection='3d') 
+    ax.set_title("{}:{}".format(satname, img_date_string))
 
 
-    # Manage grey shape (TO BE REMOVED)
-    x = []
-    y = []
-    for key in sorted(self._points.keys()):
-        # print("--> key =", key)
-        # print("--> self._points[key] =", self._points[key])
-        x_, y_ = zip(*self._points[key].items())
-        x.append(x_)
-        y.append(y_)
-    # print(x, y)
-    self._line.set_data(x, y)
-    self.figure_profile.canvas.draw()
+    # Get the coordinate of center of caldera in original image
+    center_x = self.dataset['caldera_edgeN_x'][i]
+    center_y = self.dataset['caldera_edgeN_y'][i] + ((self.dataset['caldera_edgeS_y'][i] - self.dataset['caldera_edgeN_y'][i])/2)
+    xmin = -center_x
+    xmax = self.SAR_height - center_x
+    ymin = -center_y
+    ymax = self.SAR_width - center_y
 
-    #---------------------------------------
+    # Manage pixel ticks with command extend and the brightness with vmin - vmax
+    range_ra = sign*distotprojforinterp/slra
+    range_az = y/azim
+    mean_val = np.mean(MATDIST)
+    vmin = mean_val - (80/100 * mean_val)
+    vmax = mean_val + (150/100 * mean_val)
+    ax.imshow(MATDIST, cmap='Greys_r', vmin=vmin, vmax=vmax, extent=[np.min(range_ra),np.max(range_ra), range_az[0] ,range_az[-1]], aspect='auto')
+    # ax.plot_surface(X, Y, Z, alpha=0.5, color='b')
+    # ax.plot_surface(Xproj, Yproj, Zproj, alpha=0.5, color='r')
+
+
+    # Crop the image to calcluted coordinate from original SAR image
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+
+    ax.set_ylabel("azimut")
+    ax.set_xlabel("range")
+    fig.tight_layout()
+    # Canvas creation
+    canvas = FigureCanvas(fig)
+
+
+    # self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+    # self.canvas.setFocus()
+
+    return canvas
 
 
 
-    X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
-    
+
+#===============================================================================================================
+#====================    Connected functions    ===============================================================
+#===============================================================================================================
+
 
 def _add_point(self, x, y=None):
     if isinstance(x, MouseEvent):
@@ -1262,7 +1036,7 @@ def _find_neighbor_point(self, event):
                     return key, nearest_point
     return None
 
-def _on_click(event, self):
+def on_click(event, self):
     u""" callback method for mouse click event
     :type event: MouseEvent
     """
@@ -1275,17 +1049,17 @@ def _on_click(event, self):
             self._dragging_key = key
         # else:
         #     self._add_point(event)
-        _update_plot(self)
+        update_plot(self)
 
 
 
-def _on_release(event, self):
+def on_release(event, self):
     u""" callback method for mouse release event
     :type event: MouseEvent
     """
     if event.button == 1 and event.inaxes in [self.ax1] and self._dragging_point:
         self._dragging_point = None
-        _update_plot(self)
+        update_plot(self)
 
         # Update profile with color code
         # self.updateProfilePlt()
@@ -1293,14 +1067,10 @@ def _on_release(event, self):
         self.updateSARPlot()
         # Set checked save button to tell user modification has been done
         self.pushButton_pickSAR_save.setChecked(True)
-        # Update 3dView if mode auto
-        if self.checkBox_auto_update.isChecked():
-            self.initiateSimAmpliPlot()
-        else:
-            self.pushButton_update_simamp.setChecked(True)
 
 
-def _on_motion(event, self):
+
+def on_motion(event, self):
     """ callback method for mouse motion event
     :type event: MouseEvent
     """
@@ -1310,108 +1080,7 @@ def _on_motion(event, self):
         return
     _remove_point(self, *self._dragging_point)
     self._dragging_point = _add_point(self, event)
-    _update_plot(self)
-
-
-
-            
-
-
-#=========================== FUNCTION FOR SIMULATED AMPLITUDE CREARTION ===========================
-
-from mpl_toolkits.mplot3d import axes3d
-def get_cone_data(x, y, r1, r2, z1, z2, n1, n2):
-    """ Get 3 2d array to plot cone
-        x, y are coordinate of center of both circle 
-        r1, r2 are rayon of circle 1 and 2
-        z1, z2 are height of circle 1 and 2
-        n1 is number of samples to create circle
-        n2, number of sample to link both circle
-
-        """
-
-    theta = np.linspace(0,2*np.pi,n1)
-    z = np.linspace(z1,z2,n2)
-    r = np.linspace(r1,r2,n2)
-
-    # Create 2d matrice with Z limit value in order to create all intermediate points in between
-    T, Z = np.meshgrid(theta, z)
-    # Create 2d matrice with both circle rayon limit value in order to create all intermediate points in between
-    T, R = np.meshgrid(theta, r)
-
-
-    # Then calculate X, Y, using cos and sin to variate points between both circle value in x and y axis
-    X = (R * np.cos(T))
-    Y = (R * np.sin(T))
-
-    # Move to reference
-    X = X + x
-    Y = Y + y
-
-    return X, Y, Z
-
-
-def get_perforated_surface(x1, y1,x2, y2, r1, r2, z, n1, n2):
-    """ Get 3 2d array to plot cone
-        x1, y1 are coordinate of center of first circle
-        x2, y2 are coordinate of center of secondary circle
-        r1, r2 are rayon of circle 1 and 2
-        z is height of surface to draw
-        n1 is number of samples to create circle
-        n2, number of sample to link both circle
-
-        """
-
-    theta = np.linspace(0,2*np.pi,n1)
-    z1 = np.linspace(z,z,n2)
-    r1 = np.linspace(0,r1,n2)
-
-    # Create 2d matrice with Z limit value in order to create all intermediate points in between
-
-    T, Z1 = np.meshgrid(theta, z1)
-
-    # Create 2d matrice with both circle rayon limit value in order to create all intermediate points in between
-    T1, R1 = np.meshgrid(theta, r1)
-
-    # Then calculate X, Y, using cos and sin to variate points between both circle value in x and y axis
-    X1 = (R1* np.cos(T1))
-    Y1 = (R1* np.sin(T1))
-    # Move to reference
-    X1 = X1 + x1
-    Y1 = Y1 + y1
-
-
-    # Loop throug index of X1 and extract X and Y value
-    for iy, ix in np.ndindex(X1.shape):
-        x_val = (X1[iy, ix])
-        y_val = (Y1[iy, ix])
-        if is_inside_circle(x_val, y_val, x2, y2, r2):
-            # print("remove this coordinate:", x_val, y_val)
-            Z1[iy, ix] = np.nan
-
-
-    return X1, Y1, Z1
-
-
-
-def data_for_cylinder_along_z(center_x,center_y,radius,height_z):
-
-    theta = np.linspace(0, 2*np.pi, 100)
-    x = radius*np.cos(theta) + center_x
-    y = radius*np.sin(theta) + center_y
-    z = np.zeros(len(x))
-    z.fill(height_z)
-    return x, y, z
-
-def is_inside_circle(x, y, x_center, y_center, r):
-    distance = math.sqrt((x - x_center)**2 + (y - y_center)**2)
-    return distance < r
-
-
-
-
-
-
+    update_plot(self)
 
 
 

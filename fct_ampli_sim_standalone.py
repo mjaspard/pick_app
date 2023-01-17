@@ -192,13 +192,19 @@ MATDIST[:,:] = np.sum(Matdist, 1)
 
 print(MATDIST.shape)
 
-# if (re.search("Ascending Right", MODE) or (re.search("Descending Left", MODE))):
-if incid_deg < 0:
-    sign=- 1
+if (re.search("Ascending Right", MODE) or (re.search("Descending Left", MODE))):
+ sign=- 1
 else:
     sign = 1
 
 
+
+# print(maxdistcum)
+
+
+
+print(MATDIST.shape)
+print(distotprojforinterp.shape)
 
 #------ Plot stuff -----#
 

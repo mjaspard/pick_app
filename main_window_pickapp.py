@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QSlider, QCheckBox
 from Ui_main_window_pickapp import Ui_MainWindow
 from PyQt5.QtCore import pyqtSlot, QSize
-from Loader import Loader
+# from Loader import Loader
 import matplotlib as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -33,6 +33,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.setupUi(self)
 		self.dataset = {}
 		self.rm_canvas = False
+		self.rm_canvas_view3d = False
 		self.rm_canvas_simampli = False
 		self.index_live = 0
 		self.pick_SAR_index = 0
@@ -53,24 +54,19 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_pickSAR_previous.clicked.connect(self.pickSARPrev)
 		self.pushButton_pickSAR_save.clicked.connect(self.pickSARSave)
 		self.pushButton_update_simamp.clicked.connect(self.initiateSimAmpliPlot)
-		self.pushButton_simamp.clicked.connect(lambda: self.updateView(1))
-		self.pushButton_3d.clicked.connect(lambda: self.updateView(2))
-		self.pushButton_profile.clicked.connect(lambda: self.updateView(3))
+		self.pushButton_update_view3D.clicked.connect(self.initiateView3DPlot)
 
-		# Initialise view option between amplitude and 3d 
-		self.pushButton_simamp.setChecked(False)
-		self.pushButton_3d.setChecked(True)
-		self.pushButton_profile.setChecked(False)
+		# manage menubar
+		self.actionProfile.toggled.connect(self.dockWidget_profile.setVisible)
+		self.action3d_view.toggled.connect(self.dockWidget_view3D.setVisible)
+		self.actionSAR_image.toggled.connect(self.dockWidget_SARImage.setVisible)
+		self.actionSimulated_amplitude.toggled.connect(self.dockWidget_SimAmp.setVisible)
+		self.actionPlot_picking_results.toggled.connect(self.dockWidget_PlotPicks.setVisible)
 
-
-
-		# rewrite the size here to work in DT designer easier
-		# self.SARImage.setMaximumSize(QSize(2000, 2000))
-		# self.dockWidget_SimAmp.resize(QSize(700, 700))
-
-		# self.ProfilePlt.setMinimumSize(QSize(100, 100))
-		# self.ProfilePlt.resize(1000, 500)
-
+		# manage active views
+		self.dockWidget_SimAmp.setVisible(False)
+		self.dockWidget_PlotPicks.setVisible(False)
+		self.resize(1746, 700)
 
 	# Decorator to bypass function if data not loaded
 	def data_loaded(fonction):
@@ -95,7 +91,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# 	QMessageBox.information(self,"TRACE", "Fichier à ouvrir:\n\n%s"%csv_file)
 
 		# Load data into a dict
-		self.dataset = Loader(self.csv_file).images_data
+		# self.dataset = Loader(self.csv_file).images_data
+		self.dataset = csv_to_dict(self.csv_file)
 		self.image_number = len(self.dataset['folder'])
 		# Manage horizontal slider directly dependant of number of datas
 		self.SAR_change.setMaximum(self.image_number - 1)
@@ -151,11 +148,22 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.SARLayout.addWidget(self.toolbar)
 		# Display crater profile
 		self.initiateProfilePlot()
-		# Display simulated amplitude plot
-		if self.checkBox_auto_update.isChecked():
-			self.initiateSimAmpliPlot()
+		
+		# Update 3d view if selected
+		if self.checkBox_auto_update_view3D.isChecked():
+		    self.initiateView3DPlot()
 		else:
-			self.pushButton_update_simamp.setChecked(True)
+		    self.pushButton_update_view3D.setChecked(True)
+
+		# Update simulted amplitude view if selected
+		if self.checkBox_auto_update_simamp.isChecked():
+		    self.initiateSimAmpliPlot()
+		else:
+		    self.pushButton_update_simamp.setChecked(True)
+
+
+		
+
 		# Set variable tp allow removing canvas after first creation
 		self.rm_canvas = True
 		# Re-initialise picking ellipse counter
@@ -190,6 +198,20 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 		# Update Profile 
 		self.updateProfilePlt()
+
+		# Update 3d view if selected
+		if self.checkBox_auto_update_view3D.isChecked():
+		    self.initiateView3DPlot()
+		else:
+		    self.pushButton_update_view3D.setChecked(True)
+
+		# Update simulted amplitude view if selected
+		if self.checkBox_auto_update_simamp.isChecked():
+		    self.initiateSimAmpliPlot()
+		else:
+		    self.pushButton_update_simamp.setChecked(True)
+
+
 
 
 	@data_loaded
@@ -315,53 +337,67 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 
 #===============================================================================================================
-#===========================    SIMULATED AMPLITUDE IMAGE  ===================================================
+#=================================   3D VIEW      ==============================================================
 #===============================================================================================================
 
 
-	def initiateSimAmpliPlot(self):
+	def initiateView3DPlot(self):
 			""" Function that display the image from the dataset at the index
 				1: Reterive the figure object from "getSARFig function"
 				2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
 				"""
 
 			# Close current figure if it exists:
-			# print(" initiate amplitude simulation plot")
-			if self.rm_canvas_simampli:
-				self.canvas_sim_ampli.close()
+			print(" initiate View 3D plot")
+			if self.rm_canvas_view3d:
+				self.canvas_view3d.close()
 				# print("-- remove canvas profile")
 				# self.canvas_profile.close()
 
 
+			self.rm_canvas_view3d = True
+			# Get matplotlib figure objetct and min/max value of amplitude image
+			self.canvas_view3d = getView3dFig(self)
+
+			self.View3D_Layout.addWidget(self.canvas_view3d)
+			# Draw the figure
+			self.canvas_view3d.draw()
+
+
+#===============================================================================================================
+#===========================    SIMULATED AMPLITUDE IMAGE  ===================================================
+#===============================================================================================================
+
+
+	def initiateSimAmpliPlot(self):
+			""" Function that display the simulated amplitude image
+				1: Execute "Writecsv_picking_results.py" to get the necessary data
+				2: Call 
+				2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
+				"""
+
+			# Close current figure if it exists:
+			print(" initiate amplitude simulation plot")
+			if self.rm_canvas_simampli:
+				self.canvas_sim_ampli.close()
+				self.toolbar_sim_ampli.close()
+
 			self.rm_canvas_simampli = True
+
+			# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
+			convert_csv(self.csv_file)
+
+
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_sim_ampli = getSimAmpliFig(self)
+			# Create tool bar
+			self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
 
-			# Create a tool bar
-			# self.toolbar_3 = NavigationToolbar(self.canvas_sim_ampli, self.SimAmpPlt, coordinates=True)
-			# self.SimAmp_Layout.addWidget(self.toolbar_3)
-			# Add figure to layout properties of ProfilePlt Widget
+			# Add object to layout
 			self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
+			self.SimAmp_Layout.addWidget(self.toolbar_sim_ampli)
 			# Draw the figure
 			self.canvas_sim_ampli.draw()
 
-	def updateView(self, num):
-		""" This function will switch between different view (3d, simulated amplitude ...)
-		It will change the status of button and the reload the graph"""
 
-		if (num == 1):
-			print("Clicked 1")
-			self.pushButton_simamp.setChecked(True)
-			self.pushButton_3d.setChecked(False)
-			self.pushButton_profile.setChecked(False)
-		elif (num == 2):
-			print("Clicked 2")
-			self.pushButton_simamp.setChecked(False)
-			self.pushButton_3d.setChecked(True)
-			self.pushButton_profile.setChecked(False)
-		elif (num == 3):
-			self.pushButton_simamp.setChecked(False)
-			self.pushButton_3d.setChecked(False)
-			self.pushButton_profile.setChecked(True)
 
-		self.initiateSimAmpliPlot()
