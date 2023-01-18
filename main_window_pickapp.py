@@ -35,6 +35,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.rm_canvas = False
 		self.rm_canvas_view3d = False
 		self.rm_canvas_simampli = False
+		self.rm_canvas_pickresults = False
 		self.index_live = 0
 		self.pick_SAR_index = 0
 		self.pickSAR_activated = False
@@ -53,9 +54,13 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_pickSAR_next.clicked.connect(self.pickSARNext)
 		self.pushButton_pickSAR_previous.clicked.connect(self.pickSARPrev)
 		self.pushButton_pickSAR_save.clicked.connect(self.pickSARSave)
-		self.pushButton_update_simamp.clicked.connect(self.initiateSimAmpliPlot)
-		self.pushButton_ellipse_simamp.clicked.connect(self.ellipseSimAmpliPlot)
+		self.pushButton_update_simamp.clicked.connect(lambda:	self.initiateSimAmpliPlot())
+		self.pushButton_ellipse_simamp.clicked.connect(lambda:	self.initiateSimAmpliPlot(init=False))
 		self.pushButton_update_view3D.clicked.connect(self.initiateView3DPlot)
+		self.pushButton_update_plotpicks.clicked.connect(lambda:  self.pickingResultsPlot())
+		self.dateEdit_plotpicks_start.dateChanged.connect(lambda:  self.pickingResultsPlot(date_only=True))
+		self.dateEdit_plotpicks_end.dateChanged.connect(lambda:  self.pickingResultsPlot(date_only=True))
+
 
 
 		# manage menubar
@@ -68,6 +73,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# manage active views
 		self.dockWidget_SimAmp.setVisible(False)
 		self.dockWidget_PlotPicks.setVisible(False)
+		# Resize main window
 		self.resize(1746, 700)
 
 	# Decorator to bypass function if data not loaded
@@ -164,7 +170,11 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		else:
 		    self.pushButton_update_simamp.setChecked(True)
 
-
+		# Update picking results plot is selected
+		if self.checkBox_auto_update_plotpicks.isChecked():
+		    self.pickingResultsPlot()
+		else:
+		    self.pushButton_update_plotpicks.setChecked(True)
 		
 
 		# Set variable tp allow removing canvas after first creation
@@ -214,7 +224,11 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		else:
 		    self.pushButton_update_simamp.setChecked(True)
 
-
+		# Update picking results plot is selected
+		if self.checkBox_auto_update_plotpicks.isChecked():
+		    self.pickingResultsPlot()
+		else:
+		    self.pushButton_update_plotpicks.setChecked(True)
 
 
 	@data_loaded
@@ -354,15 +368,18 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			print(" initiate View 3D plot")
 			if self.rm_canvas_view3d:
 				self.canvas_view3d.close()
-				# print("-- remove canvas profile")
-				# self.canvas_profile.close()
+				self.toolbar_view3d.close()
 
 
 			self.rm_canvas_view3d = True
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_view3d = getView3dFig(self)
+			# Create tool bar
+			self.toolbar_view3d = NavigationToolbar(self.canvas_view3d, self.view3DPlt, coordinates=True)
+
 
 			self.View3D_Layout.addWidget(self.canvas_view3d)
+			self.View3D_Layout.addWidget(self.toolbar_view3d)
 			# Draw the figure
 			self.canvas_view3d.draw()
 
@@ -372,7 +389,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 #===============================================================================================================
 
 
-	def initiateSimAmpliPlot(self):
+	def initiateSimAmpliPlot(self, init=True):
 		""" Function that display the simulated amplitude image
 			1: Execute "Writecsv_picking_results.py" to get the necessary data
 			2: Call 
@@ -392,9 +409,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 
 		# Get matplotlib figure objetct and min/max value of amplitude image
-		self.canvas_sim_ampli = getSimAmpliFig(self, init=True)
+		self.canvas_sim_ampli = getSimAmpliFig(self, init)
 		# Create tool bar
-		self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
+		self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SimAmpPlt, coordinates=True)
 
 		# Add object to layout
 		self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
@@ -402,34 +419,47 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# Draw the figure
 		self.canvas_sim_ampli.draw()
 
-	def ellipseSimAmpliPlot(self):
-		""" function which display or hide ellipse on the sim ampli plot without recalculation of entire matrice MATDIST"""
+
+
+#===============================================================================================================
+#===========================    Plot Picking results  ===================================================
+#===============================================================================================================
+
+
+	def pickingResultsPlot(self, date_only=False):
+		""" Function that display the picking results plot
+			1: Execute "Writecsv_picking_results.py" to get the necessary data
+			2: Call 
+			2: Add this to the layout "PickResultsayout" !!! Layout need to be added to the QWidget
+			"""
+
+		# stop the function when the automatic modification of dateEdit object run the functuin
+		if (date_only and not self.rm_canvas_pickresults):
+			return
 
 		# Close current figure if it exists:
-		print(" initiate amplitude simulation plot")
-		if self.rm_canvas_simampli:
-			self.canvas_sim_ampli.close()
-			self.toolbar_sim_ampli.close()
+		print("run pickingResultsPlot")
+		print("self.rm_canvas_pickresults = ", self.rm_canvas_pickresults)
+		if self.rm_canvas_pickresults:
+			self.canvas_pickresults.close()
+			self.toolbar_pickresults.close()
 
-		self.rm_canvas_simampli = True
+
 
 		# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
 		convert_csv(self.csv_file)
 
-
 		# Get matplotlib figure objetct and min/max value of amplitude image
-		self.canvas_sim_ampli = getSimAmpliFig(self)
+		self.canvas_pickresults = getPickingResultsFig(self, date_only)
 		# Create tool bar
-		self.toolbar_sim_ampli = NavigationToolbar(self.canvas_sim_ampli, self.SARImage, coordinates=True)
+		self.toolbar_pickresults = NavigationToolbar(self.canvas_pickresults, self.PickResultsPlt, coordinates=True)
 
 		# Add object to layout
-		self.SimAmp_Layout.addWidget(self.canvas_sim_ampli)
-		self.SimAmp_Layout.addWidget(self.toolbar_sim_ampli)
+		self.PickResults_Layout.addWidget(self.canvas_pickresults)
+		self.PickResults_Layout.addWidget(self.toolbar_pickresults)
 		# Draw the figure
-		self.canvas_sim_ampli.draw()		
+		self.canvas_pickresults.draw()
 
-
-
-
-
+		# set flaf to true
+		self.rm_canvas_pickresults = True
 

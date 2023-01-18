@@ -1,11 +1,14 @@
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import matplotlib as plt
+import matplotlib.pyplot as pyplt
 import numpy as np
+import matplotlib.dates as mdates
 import os, math, re, time, sys
 import datetime as datetime
 from osgeo import gdal
 from PyQt5 import QtCore
+from statistics import mean 
 from fct_subdisplay import *
 
 
@@ -94,7 +97,7 @@ def getSARFig(self):
     nCols  = Raster.RasterXSize      # how many columns
     dType  = Band.DataType          # the datatype for this band
 
-    print("nBands, nRows, nCols, dType = ", nBands, nRows, nCols, dType)
+    # print("nBands, nRows, nCols, dType = ", nBands, nRows, nCols, dType)
     self.SAR_width = nRows
     self.SAR_height = nCols
     # Extract band
@@ -404,8 +407,8 @@ def getProfileFig(self):
     Y_profile_clickable = [Iy, Ky, Uy, Ey, Fy, Vy, Ly, Jy]
 
 
-    print("X_profile_all = Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx") 
-    print("X_profile_all = ",Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx) 
+    # print("X_profile_all = Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx") 
+    # print("X_profile_all = ",Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx) 
    
     #========================== DRAW FIGURE ================================#
 
@@ -469,21 +472,25 @@ def getProfileFig(self):
     # self.ax1.axis('equal')
     self.ax1.set_xlim(-1000, 1000)  # self.SAR_width = number of pixels in azimut direction for this image
     self.ax1.set_ylim(2200, 3600)
-    self.ax1.set_xlabel('[m] (range dircetion)')
+    self.ax1.set_xlabel('[m] (range direction)')
     self.ax1.set_ylabel('[m]')
-    self.ax1.text(-250, 2500, "delta X = {}m".format(delta_x))
-    self.ax1.text(-250, 2450, "P2 from top = {}m".format(h1))
-    self.ax1.text(-250, 2400, "Caldera Radius= {}m".format(Jx))
-    self.ax1.text(-250, 2350, "P2 radius = {}m".format(Lx))
-    self.ax1.text(-250, 2300, "Crat radius = {}m".format(diameter_crater/2))
-    self.ax1.text(-250, 2250, "Bottom from P2 = {}m".format(Cy - Ey))
-    self.ax1.text(-250, 2210, "Bottom radius = {}m".format(diameter_bottom/2))
+    self.ax1.text(-250, 2500, "delta X = {}m".format(round(delta_x, 2)))
+    self.ax1.text(-250, 2450, "P2 from top = {}m".format(round(h1, 2)))
+    self.ax1.text(-250, 2400, "Caldera Radius= {}m".format(round(Jx, 2)))
+    self.ax1.text(-250, 2350, "P2 radius = {}m".format(round(Lx, 2)))
+    self.ax1.text(-250, 2300, "Crat radius = {}m".format(round((diameter_crater/2), 2)))
+    self.ax1.text(-250, 2250, "Bottom from P2 = {}m".format(round((Cy - Ey), 2)))
+    self.ax1.text(-250, 2210, "Bottom radius = {}m".format(round((diameter_bottom/2), 2)))
 
   
 
-
-
-
+    # Draw line to represent satellite direction
+    sat_incid = (math.pi/2) - incidence_angle_rad
+    m = np.tan(sat_incid)
+    x_incid = np.linspace(delta_x - 1000, delta_x + 1000, 3)
+    y_incid = m*(x_incid - delta_x) + Cy
+    self.ax1.plot(x_incid, y_incid, linestyle='dashed', linewidth=1, color="grey")
+    self.ax1.text(0, 3500, "incid = {}°".format(incidence_angle_deg), color='grey')
 
     # Create event when mouse clicking on profile
     # self.figure_profile.canvas.mpl_connect('button_press_event', lambda event: onclick_profile(self, event))
@@ -663,7 +670,7 @@ def getView3dFig(self):
 
 
 
-    print("print 3d view")
+    # print("print 3d view")
     self.ax2 = self.figure_view_3d.add_subplot(111, projection='3d') 
     # n1 is number of samples to create circle
     # n2, number of sample to link both circle
@@ -700,7 +707,6 @@ def getView3dFig(self):
     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner, Cy)
     self.ax2.plot(Xc, Yc, Zc, color='red', linewidth=3)
 
-    print("delta_x in 3D view = ", delta_x)
     # Draw cone from P2 level to vertical limit inside the crater
     X3, Y3, Z3= get_cone_data(delta_x, delta_az, rayon_inner, rayon_inner, Cy, Uy, n12, n22)
     self.ax2.plot_wireframe(X3, Y3, Z3, color='grey', alpha=0.3)
@@ -720,6 +726,8 @@ def getView3dFig(self):
     # Draw Bottom ring
     Xc, Yc, Zc = data_for_cylinder_along_z(delta_x, delta_az, rayon_inner_bottom, Ey)
     self.ax2.plot(Xc, Yc, Zc, color='magenta', linewidth=3)
+
+
 
     self.ax2.set_xlim(-1000, 1000)
     self.ax2.set_ylim(-1000, 1000)
@@ -753,7 +761,7 @@ def getView3dFig(self):
 #===============================================================================================================
 
 
-def getSimAmpliFig(self, init=False):
+def getSimAmpliFig(self, init):
     """ Function that will return the canvas of simulated amplitude
     1. Load data locally from csv file (no need somewhere else so do not use self)
     2. Call function that will calculate the final matrice
@@ -832,7 +840,7 @@ def getSimAmpliFig(self, init=False):
 
 
     if init:
-        print("test calculate sim ampli")
+        # print("test calculate sim ampli")
         #----- create 3d shape, project matrice along plane, compute space between points to calculate final matrice ---#
 
         theta_edifice = math.atan((Rcald - Rbase)/(Zbase - Zvolc))
@@ -1000,9 +1008,7 @@ def getSimAmpliFig(self, init=False):
     # ax.plot_surface(X, Y, Z, alpha=0.5, color='b')
     # ax.plot_surface(Xproj, Yproj, Zproj, alpha=0.5, color='r')
 
-    print(caldera_proj)
     if self.pushButton_ellipse_simamp.isChecked():
-        print("display ellipse on simulated amplitude")
         ax.plot(caldera_proj[0,:]/abs(math.sin(incid))/slra , caldera_proj[1,:]/azim, color='blue')
         ax.plot(P2_proj[0,:]/abs(math.sin(incid))/slra , P2_proj[1,:]/azim, color='skyblue')
         ax.plot(crat_proj[0,:]/abs(math.sin(incid))/slra , crat_proj[1,:]/azim, color='red')
@@ -1018,6 +1024,8 @@ def getSimAmpliFig(self, init=False):
     ax.set_ylabel("azimut")
     ax.set_xlabel("range")
     fig.tight_layout()
+
+
     # Canvas creation
     canvas = FigureCanvas(fig)
 
@@ -1026,6 +1034,140 @@ def getSimAmpliFig(self, init=False):
     # self.canvas.setFocus()
 
     return canvas
+
+
+
+
+#===============================================================================================================
+#====================    SIMULATED AMPLITUDE     ===============================================================
+#===============================================================================================================
+
+
+def getPickingResultsFig(self, date_only):
+    """ Function that will return the canvas of picking results plot
+    1. Load data locally from csv file (no need somewhere else so do not use self)
+    2. Plot the results and return the canvas"""
+
+    # Load data for simulated amplitude
+    csv_file_out = self.csv_file + '_out.csv'
+    images_data = pd.read_csv(csv_file_out, comment='#', na_values=['99999','0'])
+
+
+    images_number = len(images_data['filepath'])
+    timestr = images_data.iloc[:,1:3].astype(str).apply('T'.join,axis=1)
+    times = pd.to_datetime(timestr, format='%Y%m%dT%H:%M:%S')
+    
+
+    # find line corresponding to current image 
+      # File name
+    i = self.index_live
+    current_date_str = images_data['img_date'][i]
+    current_date = datetime.datetime.strptime(str(current_date_str), "%Y%m%d")
+    start_date_str = np.sort(images_data['img_date'])[0]
+    start_date = datetime.datetime.strptime(str(start_date_str), "%Y%m%d")
+    end_date_str = np.sort(images_data['img_date'])[-1]
+    end_date = datetime.datetime.strptime(str(end_date_str), "%Y%m%d")
+    print("start_date = ", start_date)
+    print("end_date = ", end_date)
+
+    # Set the date to dateEdit object by default (value coming from csv file)
+    if not date_only:
+        self.dateEdit_plotpicks_start.setDate(start_date)
+        self.dateEdit_plotpicks_end.setDate(end_date)
+
+
+     # getting the date from the dateEdit object
+    t1 = self.dateEdit_plotpicks_start.date().toPyDate()
+    t2 = self.dateEdit_plotpicks_end.date().toPyDate()
+
+    # display time of last eruption
+    Terupt = datetime.datetime.strptime('2021-05-22T16:30:00', "%Y-%m-%dT%H:%M:%S")
+
+
+    # Pixel size and incidence angle
+    azimuth_pixel_size = images_data['azimuth_pixel_size']
+    range_pixel_size = images_data['range_pixel_size']
+    incidence_angle_deg = images_data['incidence_angle_deg']
+    incidence_angle_rad = (incidence_angle_deg * 2 * math.pi)/360
+    cosincid=np.cos(incidence_angle_rad)
+    sinincid=abs(np.sin(incidence_angle_rad))
+
+    ##########
+
+
+    Rcald_m = images_data['Rcald_m']
+    RP2_m = images_data['RP2_m']
+    Rcrat_m = images_data['Rcrat_m']
+    Rbot_m = images_data['Rbot_m']
+    delta_x = images_data['delta_x_m']
+    HP2 = images_data['HP2_m']
+    h = images_data['h']
+    H = images_data['H']
+    Alpha = images_data['Alpha']
+    Beta = images_data['Beta']  
+
+    cald_area = math.pi * Rcald_m * Rcald_m
+    P2_area = math.pi * RP2_m * RP2_m
+    crat_area = math.pi * Rcrat_m * Rcrat_m
+    bot_area = math.pi * Rbot_m * Rbot_m
+
+    errH = Rbot_m * sinincid / cosincid
+    indpos=incidence_angle_deg>0
+    indneg=incidence_angle_deg<0
+
+
+    ##########
+    mks = 4
+    LW = 0.7
+    fig, [ax1, ax2] = pyplt.subplots(2, 1, sharex=True, figsize=(7,7))
+    ax1.set_xlim(t1, t2)
+    ax1.errorbar(times, Rcald_m, yerr=2*azimuth_pixel_size, xerr=None,color='blue',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$R_s$')
+    ax1.errorbar(times, RP2_m, yerr=3*azimuth_pixel_size, xerr=None,color='cyan',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$R_{P2}$')
+    ax1.errorbar(times, Rcrat_m, yerr=4*azimuth_pixel_size, xerr=None,color='red',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$R_c$')
+    ax1.errorbar(times, Rbot_m, yerr=5*azimuth_pixel_size, xerr=None,color='magenta',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$R_b$')
+    ax1.plot([t1, t2],[mean(Rcald_m),mean(Rcald_m)],'--',color='blue')
+    ax1.plot([t1, t2],[mean(RP2_m),mean(RP2_m)],'--',color='cyan')
+    ax1.plot([t1, t2],[100,100],'--',color='magenta')
+    ax1.plot([t1, t2],[350, 350],'--',color='red')
+
+    ax1.legend(loc='center left',fontsize=10,bbox_to_anchor=(1, 0.5))
+    ax1.set_xlabel('Time',fontsize=10)
+    ax1.set_ylabel('Radius (m)',fontsize=10)
+
+
+    ax2.errorbar(times, Zvolc-HP2, yerr=10*range_pixel_size/cosincid, xerr=None,color='cyan',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$Z_{P2}$')
+    ax2.errorbar(times[indpos],Zvolc-HP2[indpos]-H[indpos], yerr=errH[indpos], xerr=None,color='magenta',ms=mks, fmt='^', ecolor='black', elinewidth=LW, capsize=2,label='$Z_{b; {\\theta}>0}$')
+    ax2.errorbar(times[indneg],Zvolc-HP2[indneg]-H[indneg], yerr=errH[indneg], xerr=None,color='magenta',ms=mks, fmt='v', ecolor='black', elinewidth=LW, capsize=2,label='$Z_{b;{\\theta}<0}$')
+    ax2.plot([t1, t2],[Zvolc, Zvolc],color='blue', label='$Z_s$')
+    ax2.plot([t1, t2],[Zvolc-mean(HP2), Zvolc-mean(HP2)],'--',color='red', label='$Z_{P2}$')
+    # ax2.plot([t1, t2],[Zb2002, Zb2002],':', color='gray', label='$Z_b^{2002}$')
+
+    ax1.plot([Terupt, Terupt],[0, 700],'-.',color='black')
+    ax2.plot([Terupt, Terupt],[2500, 3500],'-.',color='black')
+
+
+    ax2.set_xlabel('Time',fontsize=10)
+    ax2.set_ylabel('Elevation (m)',fontsize=10)
+    ax2.legend(loc='center left',fontsize=10,bbox_to_anchor=(1, 0.5))
+    ax2.tick_params(axis='both',labelsize=9)
+    ax1.tick_params(axis='y',labelsize=9)
+
+    # draw vertical line on current displayed SAR image
+    ax1.axvline(current_date, color='grey', linestyle='--', linewidth=1)
+    ax2.axvline(current_date, color='grey', linestyle='--', linewidth=1)
+
+
+
+
+    canvas = FigureCanvas(fig)
+
+    return canvas
+
+
+
+
+
+
 
 
 
