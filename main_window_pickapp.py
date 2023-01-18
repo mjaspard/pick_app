@@ -9,6 +9,7 @@ from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanva
 import numpy as np
 from osgeo import gdal
 import pandas as pd
+import shutil
 from fct_display import *
 
 
@@ -40,6 +41,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pick_SAR_index = 0
 		self.pickSAR_activated = False
 		self.SAR_zoom = False
+		self.mem_date_pickplt = False
 		self.SAR_change.valueChanged.connect(lambda:  self.updateSAR_info())	# use a lambda to consume the unwanted argument
 		self.SAR_change.sliderReleased.connect(lambda:  self.loadSAR())			# It is to manage decorator inside a class
 		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSAR())
@@ -69,12 +71,16 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.actionSAR_image.toggled.connect(self.dockWidget_SARImage.setVisible)
 		self.actionSimulated_amplitude.toggled.connect(self.dockWidget_SimAmp.setVisible)
 		self.actionPlot_picking_results.toggled.connect(self.dockWidget_PlotPicks.setVisible)
+		
+		# self.actionSimulated_amplitude.toggled.connect(lambda:  self.dockWidget_SimAmp.show())
+		# self.actionSimulated_amplitude.toggled.connect(lambda:  self.dockWidget_SimAmp.raise_())
+		# self.actionPlot_picking_results.toggled.connect(lambda:  self.dockWidget_PlotPicks.raise_())
 
 		# manage active views
 		self.dockWidget_SimAmp.setVisible(False)
 		self.dockWidget_PlotPicks.setVisible(False)
 		# Resize main window
-		self.resize(1746, 700)
+		self.resize(1500, 500)
 
 	# Decorator to bypass function if data not loaded
 	def data_loaded(fonction):
@@ -85,7 +91,6 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			else:
 				self.label_SAR.setText("Please open a csv file before playing")
 		return check_dataset
-
 
 
 	@pyqtSlot()
@@ -304,7 +309,12 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		print("save to csv file last modification")
 		df = pd.DataFrame.from_dict(self.dataset)
 		df.to_csv(self.csv_file, index=False)
-		print("		New values has been saved to csv")
+		print("--> New values has been saved to csv")
+		csv_file_out_tmp = self.csv_file + '_pick_tmp.csv'
+		csv_file_out = self.csv_file + '_pick_results.csv'
+		shutil.copyfile(csv_file_out_tmp, csv_file_out)
+		print("--> csv file for plotting picking results is updated ")
+
 		self.pushButton_pickSAR_save.setChecked(False)
 		self.pickSARNext()
 
@@ -405,7 +415,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.rm_canvas_simampli = True
 
 		# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
-		convert_csv(self.csv_file)
+		create_csv_tmp(self)
 
 
 		# Get matplotlib figure objetct and min/max value of amplitude image
@@ -447,7 +457,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 
 		# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
-		convert_csv(self.csv_file)
+		create_csv_tmp(self)
 
 		# Get matplotlib figure objetct and min/max value of amplitude image
 		self.canvas_pickresults = getPickingResultsFig(self, date_only)

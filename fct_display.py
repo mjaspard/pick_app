@@ -665,8 +665,8 @@ def getView3dFig(self):
 
     # Create figure that will be return to the mainwindow
     self.figure_view_3d = Figure()
-    self.figure_view_3d.set_figwidth(100)
-    self.figure_view_3d.set_figheight(200)
+    # self.figure_view_3d.set_figwidth(100)
+    # self.figure_view_3d.set_figheight(200)
 
 
 
@@ -768,8 +768,10 @@ def getSimAmpliFig(self, init):
     3. Plot the matrice and return the canvas"""
 
     # Load data for simulated amplitude
-    csv_file_out = self.csv_file + '_out.csv'
-    dataset = csv_to_dict(csv_file_out )
+
+    csv_file_out = self.csv_file + '_pick_tmp.csv'
+
+    dataset = csv_to_dict(csv_file_out)
 
     # find line corresponding to current image 
       # File name
@@ -1049,7 +1051,7 @@ def getPickingResultsFig(self, date_only):
     2. Plot the results and return the canvas"""
 
     # Load data for simulated amplitude
-    csv_file_out = self.csv_file + '_out.csv'
+    csv_file_out = self.csv_file + '_pick_tmp.csv'
     images_data = pd.read_csv(csv_file_out, comment='#', na_values=['99999','0'])
 
 
@@ -1063,6 +1065,12 @@ def getPickingResultsFig(self, date_only):
     i = self.index_live
     current_date_str = images_data['img_date'][i]
     current_date = datetime.datetime.strptime(str(current_date_str), "%Y%m%d")
+    current_time_str = images_data['img_hour'][i]
+    current_time = datetime.datetime.strptime(str(current_time_str), "%H:%M:%S")
+    current_datetime_str = "{}_{}".format(current_date_str, current_time_str)
+    current_datetime = datetime.datetime.strptime(str(current_datetime_str), "%Y%m%d_%H:%M:%S")
+
+
     start_date_str = np.sort(images_data['img_date'])[0]
     start_date = datetime.datetime.strptime(str(start_date_str), "%Y%m%d")
     end_date_str = np.sort(images_data['img_date'])[-1]
@@ -1071,10 +1079,10 @@ def getPickingResultsFig(self, date_only):
     print("end_date = ", end_date)
 
     # Set the date to dateEdit object by default (value coming from csv file)
-    if not date_only:
+    if not self.mem_date_pickplt:
         self.dateEdit_plotpicks_start.setDate(start_date)
         self.dateEdit_plotpicks_end.setDate(end_date)
-
+        self.mem_date_pickplt = True
 
      # getting the date from the dateEdit object
     t1 = self.dateEdit_plotpicks_start.date().toPyDate()
@@ -1153,9 +1161,11 @@ def getPickingResultsFig(self, date_only):
     ax1.tick_params(axis='y',labelsize=9)
 
     # draw vertical line on current displayed SAR image
-    ax1.axvline(current_date, color='grey', linestyle='--', linewidth=1)
-    ax2.axvline(current_date, color='grey', linestyle='--', linewidth=1)
+    ax1.axvline(current_datetime, color='grey', linestyle='--', linewidth=1)
+    ax2.axvline(current_datetime, color='grey', linestyle='--', linewidth=1)
 
+    # Set the x-axis format to "day/month/year"
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
 
 
 
