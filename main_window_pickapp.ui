@@ -67,7 +67,7 @@
     <bool>true</bool>
    </property>
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -97,7 +97,7 @@
     <bool>false</bool>
    </property>
    <property name="allowedAreas">
-    <set>Qt::NoDockWidgetArea</set>
+    <set>Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>Amplitude simulated from profile</string>
@@ -280,7 +280,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>729</width>
+     <width>520</width>
      <height>508</height>
     </size>
    </property>
@@ -409,7 +409,23 @@
              <height>250</height>
             </size>
            </property>
-           <layout class="QVBoxLayout" name="SARLayout"/>
+           <layout class="QVBoxLayout" name="SARLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
           </widget>
          </item>
          <item>
