@@ -906,21 +906,21 @@ def getSimAmpliFig(self, init):
 
         # initialisation
         Dist = np.zeros(Z.shape)
-        Distcum = np.zeros(Z.shape)
-        Distnorm = np.zeros(Z.shape)
+        # Distcum = np.zeros(Z.shape)
+        # Distnorm = np.zeros(Z.shape)
 
         for k in range(1, p):
             # compute distance topo between two consecutive points for all raws
             Dist[:,k] = np.sqrt(((Z[k,:] - Z[k-1, :])**2 + (X[k,:] - X[k-1, :])**2))
             # compute cumulative distance since the beginning of the profiles
-            Distcum[:,k] = Distcum[:, k-1] + Dist[:,k]
+            # Distcum[:,k] = Distcum[:, k-1] + Dist[:,k]
 
-        maxdistcum = np.max(Distcum,1) # compute distance max of each profile   # !!! not same indice as in matla
+        # maxdistcum = np.max(Distcum,1) # compute distance max of each profile   # !!! not same indice as in matla
 
 
-        for k in range(0, n):
-            # normalize Dist with distance max of each profile
-            Distnorm[k,:] = np.divide(Dist[k,:], maxdistcum[k])
+        # for k in range(0, n):
+        #     # normalize Dist with distance max of each profile
+        #     Distnorm[k,:] = np.divide(Dist[k,:], maxdistcum[k])
 
 
 
@@ -962,7 +962,8 @@ def getSimAmpliFig(self, init):
                 else:
                     ind = np.where((distotproj <= dist1) & (distotproj > dist2))
 
-                Matdist[k,l,ind] = Distnorm[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)
+                # Matdist[k,l,ind] = Distnorm[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)    # old style
+                Matdist[k,l,ind] = Dist[k,l]/abs(dist1 - dist2) * abs(maxdistprojk - mindistprojk)
 
 
 
@@ -1020,11 +1021,11 @@ def getSimAmpliFig(self, init):
 
 
     # Crop the image to calcluted coordinate from original SAR image
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
+    # ax.set_xlim(xmin, xmax)
+    # ax.set_ylim(ymin, ymax)
 
-    ax.set_ylabel("azimut")
-    ax.set_xlabel("range")
+    ax.set_ylabel("azimuth (pixels)")
+    ax.set_xlabel("range (pixels)")
     fig.tight_layout()
 
 
