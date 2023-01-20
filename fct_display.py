@@ -865,7 +865,7 @@ def getSimAmpliFig(self, init):
 
         # # crater inverted cone
         theta_crat = math.atan(np.float64(Rcrat * (Alpha - 1))/(ZP2 - ZBotcrat)*(1 - Beta))
-        Z[ind] = Z[ind] + (Rcrat/math.tan(theta_crat)) + np.sqrt(((X[ind] - decalX)**2 + Y[ind]**2)/(math.tan(theta_crat)**2))
+        Z[ind] = Z[ind] + (np.float64(Rcrat)/math.tan(theta_crat)) + np.sqrt((np.float64((X[ind] - decalX)**2 + Y[ind]**2))/(math.tan(theta_crat)**2))
         # # crater flat bottom
         ind =  np.where(((X - decalX)**2 + Y**2) <= (Alpha * Rcrat)**2)
         Z[ind] = ZBotcrat
