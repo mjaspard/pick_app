@@ -35,6 +35,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.dataset = {}
 		self.rm_canvas = False
 		self.rm_canvas_view3d = False
+		self.rm_canvas_profile = False
 		self.rm_canvas_simampli = False
 		self.rm_canvas_pickresults = False
 		self.index_live = 0
@@ -335,14 +336,20 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			print(" initiate sar plot")
 			if self.rm_canvas:
 				self.canvas_profile.close()
+				self.toolbar_profile.close()
 				print("-- remove canvas profile")
 				# self.canvas_profile.close()
 
 
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_profile = getProfileFig(self)
+
+			# Create tool bar
+			self.toolbar_profile = NavigationToolbar(self.canvas_profile, self.ProfilePlt, coordinates=True)
+
 			# Add figure to layout properties of ProfilePlt Widget
 			self.Profile_Layout.addWidget(self.canvas_profile)
+			self.Profile_Layout.addWidget(self.toolbar_profile)
 			# Draw the figure
 			self.canvas_profile.draw()
 
@@ -355,10 +362,16 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				"""
 			print("update sar plot")
 			self.canvas_profile.close()
+			self.toolbar_profile.close()
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_profile = getProfileFig(self)
+
+			# Create tool bar
+			self.toolbar_profile = NavigationToolbar(self.canvas_profile, self.ProfilePlt, coordinates=True)
+
 			# Add figure to layout properties of ProfilePlt Widget
 			self.Profile_Layout.addWidget(self.canvas_profile)
+			self.Profile_Layout.addWidget(self.toolbar_profile)
 			# Draw the figure
 			self.canvas_profile.draw()
 

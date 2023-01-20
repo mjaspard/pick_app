@@ -1144,7 +1144,7 @@ def getPickingResultsFig(self, date_only):
     ax1.plot([t1, t2],[350, 350],'--',color='red')
 
     ax1.legend(loc='center left',fontsize=10,bbox_to_anchor=(1, 0.5))
-    ax1.set_xlabel('Date and Time',fontsize=10)
+    # ax1.set_xlabel('Date and Time',fontsize=10)
     ax1.set_ylabel('Radius [m]',fontsize=10)
 
 
