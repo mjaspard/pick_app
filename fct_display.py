@@ -202,6 +202,8 @@ def getSARFig(self):
     self.figure.canvas.mpl_connect('button_press_event', lambda event: onclick(event, self))
     self.figure.canvas.mpl_connect('key_press_event', lambda event: on_key(event, self))   # Do not work !!! Why ???
 
+    self.ax.set_ylabel("Azimuth [pixels]")
+    self.ax.set_xlabel("Range [pixels]")
 
     self.ax.set_aspect(abs(np.sin(np.deg2rad(incidence_angle_deg))) * azimuth_pixel_size/range_pixel_size)
 
@@ -472,8 +474,8 @@ def getProfileFig(self):
     # self.ax1.axis('equal')
     self.ax1.set_xlim(-1000, 1000)  # self.SAR_width = number of pixels in azimut direction for this image
     self.ax1.set_ylim(2200, 3600)
-    self.ax1.set_xlabel('[m] (range direction)')
-    self.ax1.set_ylabel('[m]')
+    self.ax1.set_xlabel('Range [m]')
+    self.ax1.set_ylabel('Elevation [m]')
     self.ax1.text(-250, 2500, "delta X = {}m".format(round(delta_x, 2)))
     self.ax1.text(-250, 2450, "P2 from top = {}m".format(round(h1, 2)))
     self.ax1.text(-250, 2400, "Caldera Radius= {}m".format(round(Jx, 2)))
@@ -734,8 +736,9 @@ def getView3dFig(self):
 
     # print(dir(self.figure_view_3d))
 
-    self.ax2.set_ylabel('$Azimuth$', fontsize=15, rotation=150)
-    self.ax2.set_xlabel('$Range$', fontsize=15, rotation=150)
+    self.ax2.set_ylabel('Azimuth [m]', fontsize=12, rotation=150)
+    self.ax2.set_xlabel('Range [m]', fontsize=12, rotation=150)
+    self.ax2.set_zlabel('Elevation [m]', fontsize=12, rotation=150)
 
 
     X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
@@ -1008,6 +1011,7 @@ def getSimAmpliFig(self, init):
     vmin = mean_val - (80/100 * mean_val)
     vmax = mean_val + (150/100 * mean_val)
     ax.imshow(self.MATDIST, cmap='Greys_r', vmin=vmin, vmax=vmax, extent=[np.min(range_ra),np.max(range_ra), range_az[0] ,range_az[-1]], aspect='auto')
+    # ax.imshow(self.MATDIST, cmap='Greys_r', vmin=vmin, vmax=vmax, extent=[np.min(range_ra),np.max(range_ra), range_az[0] ,range_az[-1]], aspect='auto')
     # ax.plot_surface(X, Y, Z, alpha=0.5, color='b')
     # ax.plot_surface(Xproj, Yproj, Zproj, alpha=0.5, color='r')
 
@@ -1021,12 +1025,12 @@ def getSimAmpliFig(self, init):
 
 
     # Crop the image to calcluted coordinate from original SAR image
-    # ax.set_xlim(xmin, xmax)
-    # ax.set_ylim(ymin, ymax)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
 
-    ax.set_ylabel("azimuth (pixels)")
-    ax.set_xlabel("range (pixels)")
-    fig.tight_layout()
+    ax.set_ylabel("Azimuth [pixels]")
+    ax.set_xlabel("Range [pixels]")
+    # fig.tight_layout()
 
 
     # Canvas creation
@@ -1042,7 +1046,7 @@ def getSimAmpliFig(self, init):
 
 
 #===============================================================================================================
-#====================    SIMULATED AMPLITUDE     ===============================================================
+#====================    PLOT PICKING RESULTS     ==============================================================
 #===============================================================================================================
 
 
@@ -1140,8 +1144,8 @@ def getPickingResultsFig(self, date_only):
     ax1.plot([t1, t2],[350, 350],'--',color='red')
 
     ax1.legend(loc='center left',fontsize=10,bbox_to_anchor=(1, 0.5))
-    ax1.set_xlabel('Time',fontsize=10)
-    ax1.set_ylabel('Radius (m)',fontsize=10)
+    ax1.set_xlabel('Date and Time',fontsize=10)
+    ax1.set_ylabel('Radius [m]',fontsize=10)
 
 
     ax2.errorbar(times, Zvolc-HP2, yerr=10*range_pixel_size/cosincid, xerr=None,color='cyan',ms=mks, fmt='o', ecolor='black', elinewidth=LW, capsize=2,label='$Z_{P2}$')
@@ -1155,8 +1159,9 @@ def getPickingResultsFig(self, date_only):
     ax2.plot([Terupt, Terupt],[2500, 3500],'-.',color='black')
 
 
-    ax2.set_xlabel('Time',fontsize=10)
-    ax2.set_ylabel('Elevation (m)',fontsize=10)
+    ax2.set_xlabel('Date and Time',fontsize=10)
+    ax2.set_ylabel('Elevation [m]',fontsize=10)
+    ax2.set_xticklabels(ax2.get_xticks(), rotation = 30)
     ax2.legend(loc='center left',fontsize=10,bbox_to_anchor=(1, 0.5))
     ax2.tick_params(axis='both',labelsize=9)
     ax1.tick_params(axis='y',labelsize=9)
