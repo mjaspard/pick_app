@@ -1,5 +1,5 @@
 
-Procedure to follow to run pick_app application on a mac/linux machine
+Procedure to follow to run PickCraterSAR application on a mac/linux machine
 
 
 1. Create a python environment and install required package
@@ -36,9 +36,9 @@ All your SAR image must be available locally in 'folder,img_name' position.
 
 3. Functionality
 
--	The application will use all the available datas to draw ellipse, profile, 3d images, simulated amplitude and the plot of picking results.
+-	The application will use all the available data to draw ellipses, profile, 3d images, simulated amplitude and the plot of picking results.
 -	You can also Open/Close each figure with Menubar --> View
--	You can Enable/Disable the automatic update for each figure (excepted SAR amplitude and profile) if you want to focus on specific figure with higher reactivity.
+-	You can Enable/Disable the automatic update for each figure (excepted SAR amplitude and profile) if you want to focus on a specific figure with higher reactivity.
 -	The update button turns to blue as soon as a change is available.
 -	SAR View image and crater profile can be modified manually to change ellipse/crater shape.
 -	3d images, simulated amplitude and the plot of picking results cannot be modified directly and are calculated from ellipse and profile.
@@ -52,9 +52,9 @@ All your SAR image must be available locally in 'folder,img_name' position.
 4. Picking rules
 
 	
-The common usage is to pick ellipse on SAR View image, but you can also change ellipse from crater profile dragging points
+The common usage is to pick ellipses on SAR View image, but you can also change ellipses from crater profile by dragging points
 
-Picking ellispe from SAR Image:
+Picking ellipses from SAR Image:
 
 -	Activate button Picking Action and Show Ellipse
 -	The next Pick point is written, just right clic on the image to pick the point
@@ -62,15 +62,15 @@ Picking ellispe from SAR Image:
 -	Zoom is available for better precision. (left clic on image and press escape to return to original zoom)
 -	The button save turns to blue as soon as modification has been entered, clic on it to update your csv file.
 -	The 'Filtered image' button switch between both amplitude image if present.
--	Some ellipse do not have south points to clic because shape is considered as follow:
--	Crater outer ring is considered centered on caldera ring
--	Top cone is considered centered on inner crater.
+-	Some ellipses do not have south points to clic because shape is considered as follow:
+o	Crater outer ring is considered centered on caldera ring
+o	Top cone is considered centered on inner crater.
 		
 	
 Picking from Profile:
 
--	Some position are hard coded such as altitude of caldera.
--	The profile on range axis consider that all ellipse are centered on azimut axis (which is not obviously the case on SAR image ellipse view).
+-	Some positions are hard coded such as the altitude of the caldera.
+-	The profile on range axis consider that all ellipses are centered on azimuth axis (which is not obviously the case on SAR image ellipse view).
 -	You can drag and drop only empty-coloured circle, the others are hard coded (caldera altitude) or 	directly derived from other points (inner crater derived from top Cone because crater flanc are considered vertically at that position)
 -	The save button to record modifications is the one in the SAR Image view.
 	
@@ -81,7 +81,7 @@ View3d:
 	
 Simulated amplitude:
 
--	The simulated amplitude will take into account only the profile, so the shift on azimut axis is lost.
+-	The simulated amplitude will take into account only the profile, so the shift on azimuth axis is lost.
 	
 Picking results:
 
