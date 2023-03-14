@@ -32,6 +32,8 @@ class Ui_MainWindow(object):
         self.menu_File.setObjectName("menu_File")
         self.menuView = QtWidgets.QMenu(self.menuBar)
         self.menuView.setObjectName("menuView")
+        self.menuinput = QtWidgets.QMenu(self.menuBar)
+        self.menuinput.setObjectName("menuinput")
         MainWindow.setMenuBar(self.menuBar)
         self.dockWidget_SimAmp = QtWidgets.QDockWidget(MainWindow)
         self.dockWidget_SimAmp.setEnabled(True)
@@ -114,7 +116,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.dockWidget_SARImage.sizePolicy().hasHeightForWidth())
         self.dockWidget_SARImage.setSizePolicy(sizePolicy)
-        self.dockWidget_SARImage.setMinimumSize(QtCore.QSize(520, 508))
+        self.dockWidget_SARImage.setMinimumSize(QtCore.QSize(729, 508))
         self.dockWidget_SARImage.setFloating(False)
         self.dockWidget_SARImage.setAllowedAreas(QtCore.Qt.TopDockWidgetArea)
         self.dockWidget_SARImage.setObjectName("dockWidget_SARImage")
@@ -529,6 +531,10 @@ class Ui_MainWindow(object):
         self.actionPlot_picking_results = QtWidgets.QAction(MainWindow)
         self.actionPlot_picking_results.setCheckable(True)
         self.actionPlot_picking_results.setObjectName("actionPlot_picking_results")
+        self.actionEdificeInput = QtWidgets.QAction(MainWindow)
+        self.actionEdificeInput.setCheckable(True)
+        self.actionEdificeInput.setChecked(False)
+        self.actionEdificeInput.setObjectName("actionEdificeInput")
         self.dockWidget_SimAmp.raise_()
         self.dockWidget_profile.raise_()
         self.dockWidget_SARImage.raise_()
@@ -538,8 +544,10 @@ class Ui_MainWindow(object):
         self.menuView.addAction(self.action3d_view)
         self.menuView.addAction(self.actionSimulated_amplitude)
         self.menuView.addAction(self.actionPlot_picking_results)
+        self.menuinput.addAction(self.actionEdificeInput)
         self.menuBar.addAction(self.menu_File.menuAction())
         self.menuBar.addAction(self.menuView.menuAction())
+        self.menuBar.addAction(self.menuinput.menuAction())
 
         self.retranslateUi(MainWindow)
         self.SAR_change.valueChanged['int'].connect(self.label_SAR_index.setNum) # type: ignore
@@ -553,6 +561,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.menu_File.setTitle(_translate("MainWindow", "&File"))
         self.menuView.setTitle(_translate("MainWindow", "View"))
+        self.menuinput.setTitle(_translate("MainWindow", "input"))
         self.dockWidget_SimAmp.setWindowTitle(_translate("MainWindow", "Amplitude simulated from profile"))
         self.checkBox_auto_update_simamp.setText(_translate("MainWindow", "auto"))
         self.pushButton_update_simamp.setText(_translate("MainWindow", "Update"))
@@ -601,6 +610,7 @@ class Ui_MainWindow(object):
         self.action3d_view.setText(_translate("MainWindow", "3d view"))
         self.actionSimulated_amplitude.setText(_translate("MainWindow", "Simulated amplitude"))
         self.actionPlot_picking_results.setText(_translate("MainWindow", "Plot picking results"))
+        self.actionEdificeInput.setText(_translate("MainWindow", "Edifice"))
 
 
 if __name__ == "__main__":

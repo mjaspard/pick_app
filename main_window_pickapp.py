@@ -1,7 +1,7 @@
 
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QSlider, QCheckBox
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QSlider, QCheckBox, QDialog, QLabel, QLineEdit, QPushButton, QVBoxLayout
 from Ui_main_window_pickapp import Ui_MainWindow
-from PyQt5.QtCore import pyqtSlot, QSize
+from PyQt5.QtCore import pyqtSlot, QSize, pyqtSignal
 # from Loader import Loader
 import matplotlib as plt
 from matplotlib.figure import Figure
@@ -9,23 +9,75 @@ from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanva
 import numpy as np
 from osgeo import gdal
 import pandas as pd
-import shutil
+import shutil, os
 from fct_display import *
+import importlib
 
 
-#------------------------------------ DECORATEUR ----------------------------------------------#
 
 
 
-# def data_loaded(fonction):
-#     def autre_fonction():
-#         self.label_SAR.setText("Please open a csv file before playing")
-#     if not self.dataset:
-#         return autre_fonction
-#     return fonction 
+
+# Decorator to bypass function if data not loaded
+def data_loaded(fonction):
+	print("start deco")
+	def check_dataset(self):
+		if self.dataset:
+			return fonction(self)
+		else:
+			self.label_SAR.setText("Please open a csv file before playing")
+	return check_dataset
 
 
-#-----------------------------------------------------------------------------------------------#
+#===============================================================================================================
+#===========================     SECONDARY  CLASS      ===================================================
+#===============================================================================================================
+
+
+
+class PopupDialog(QDialog):
+	""" Opening a dialog box to enter manually edifice shape"""
+
+
+	value_saved = pyqtSignal(str, str, str)
+	def __init__(self):
+		super().__init__()
+
+		self.input1 = QLineEdit()
+		self.input2 = QLineEdit()
+		self.input3 = QLineEdit()
+		self.save_button = QPushButton('Save')
+		
+
+		dict_param = LooadParametersFile('input_shape.py')
+		self.input1.setText(dict_param['Rbase'])
+		self.input2.setText(dict_param['Zbase'])
+		self.input3.setText(dict_param['Zvolc'])
+
+		layout = QVBoxLayout()
+		layout.addWidget(QLabel('Base size [m]:'))
+		layout.addWidget(self.input1)
+		layout.addWidget(QLabel('Base altitude [m]:'))
+		layout.addWidget(self.input2)
+		layout.addWidget(QLabel('Summit altitude [m]:'))
+		layout.addWidget(self.input3)
+		layout.addWidget(self.save_button)
+
+		self.save_button.clicked.connect(self.save_values)
+
+		self.setLayout(layout)
+
+	def save_values(self):
+		value1 = self.input1.text()
+		value2 = self.input2.text()
+		value3 = self.input3.text()
+		self.value_saved.emit(value1, value2, value3)
+		self.close()
+
+
+#===============================================================================================================
+#====================    MAIN CLASS DECLARATION + POPUP CLASS ===========================================================
+#===============================================================================================================
 
 
 class MainWindowPickApp(QMainWindow,Ui_MainWindow):
@@ -54,12 +106,12 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_filtered_SAR.clicked.connect(lambda:  self.updateSAR())
 		self.pushButton_pick_SAR.clicked.connect(lambda:  self.pickSAR())
 		self.frame_pickSAR.hide()
-		self.pushButton_pickSAR_next.clicked.connect(self.pickSARNext)
-		self.pushButton_pickSAR_previous.clicked.connect(self.pickSARPrev)
-		self.pushButton_pickSAR_save.clicked.connect(self.pickSARSave)
+		self.pushButton_pickSAR_next.clicked.connect(lambda: self.pickSARNext())
+		self.pushButton_pickSAR_previous.clicked.connect(lambda: self.pickSARPrev())
+		self.pushButton_pickSAR_save.clicked.connect(lambda: self.pickSARSave())
 		self.pushButton_update_simamp.clicked.connect(lambda:	self.initiateSimAmpliPlot())
 		self.pushButton_ellipse_simamp.clicked.connect(lambda:	self.initiateSimAmpliPlot(init=False))
-		self.pushButton_update_view3D.clicked.connect(self.initiateView3DPlot)
+		self.pushButton_update_view3D.clicked.connect(lambda: self.initiateView3DPlot())
 		self.pushButton_update_plotpicks.clicked.connect(lambda:  self.pickingResultsPlot())
 		self.dateEdit_plotpicks_start.dateChanged.connect(lambda:  self.pickingResultsPlot(date_only=True))
 		self.dateEdit_plotpicks_end.dateChanged.connect(lambda:  self.pickingResultsPlot(date_only=True))
@@ -72,6 +124,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.actionSAR_image.toggled.connect(self.dockWidget_SARImage.setVisible)
 		self.actionSimulated_amplitude.toggled.connect(self.dockWidget_SimAmp.setVisible)
 		self.actionPlot_picking_results.toggled.connect(self.dockWidget_PlotPicks.setVisible)
+		self.actionEdificeInput.toggled.connect(self.showInputData)
 		
 		# self.actionSimulated_amplitude.toggled.connect(lambda:  self.dockWidget_SimAmp.show())
 		# self.actionSimulated_amplitude.toggled.connect(lambda:  self.dockWidget_SimAmp.raise_())
@@ -92,6 +145,34 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			else:
 				self.label_SAR.setText("Please open a csv file before playing")
 		return check_dataset
+
+	
+	def showInputData(self):
+		""" This function will show a dialog box to enter manually the edifice input value.
+		base_size = diameter size of the base of the edifice 
+		base_alt = altitude of the base
+		top_alt = altitude of the summit
+		"""
+		popup = PopupDialog()
+		print(os.getcwd())
+		popup.value_saved.connect(lambda v1, v2, v3: self.storeInputData(v1, v2, v3))
+		# popup.value_saved.connect(self.storeInputData(v1, v2, v3))
+		popup.exec_()
+
+	def storeInputData(self, v1, v2, v3):
+		"""This function will save the input data from popup when validated with save button into variable"""
+		updateParametersFile('input_shape.py', 'Rbase', v1)
+		updateParametersFile('input_shape.py', 'Zbase', v2)
+		updateParametersFile('input_shape.py', 'Zvolc', v3)
+
+		# reload new value
+		input_shape = importlib.import_module('input_shape')
+		input_shape = importlib.reload(input_shape)
+		Zbase = input_shape.Zbase
+		# Update graphics
+		if self.dataset:
+			self.updateSARPlot()
+
 
 
 	@pyqtSlot()
@@ -485,4 +566,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 		# set flaf to true
 		self.rm_canvas_pickresults = True
+
+
+
+
+
 

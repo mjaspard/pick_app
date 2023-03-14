@@ -21,7 +21,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <zorder>dockWidget_2</zorder>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -59,8 +61,15 @@
     <addaction name="actionSimulated_amplitude"/>
     <addaction name="actionPlot_picking_results"/>
    </widget>
+   <widget class="QMenu" name="menuinput">
+    <property name="title">
+     <string>input</string>
+    </property>
+    <addaction name="actionEdificeInput"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuView"/>
+   <addaction name="menuinput"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_SimAmp">
    <property name="enabled">
@@ -280,7 +289,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>520</width>
+     <width>729</width>
      <height>508</height>
     </size>
    </property>
@@ -1341,6 +1350,17 @@
    </property>
    <property name="text">
     <string>Plot picking results</string>
+   </property>
+  </action>
+  <action name="actionEdificeInput">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Edifice</string>
    </property>
   </action>
   <zorder>dockWidget_SimAmp</zorder>

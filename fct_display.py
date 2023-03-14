@@ -223,9 +223,17 @@ def getSARFig(self):
 #====================    PROFILE      ==========================================================================
 #===============================================================================================================
 
-from input_shape import *
+import input_shape
 from matplotlib.backend_bases import MouseEvent
 import matplotlib.lines as lines
+
+
+
+global Zbase, Rbase, Zvol
+Zbase = input_shape.Zbase
+Rbase = input_shape.Rbase
+Zvolc = input_shape.Zvolc
+
 
 def getProfileFig(self):
     """ Function to draw SAR image in canvas """
@@ -234,7 +242,10 @@ def getProfileFig(self):
     i = self.index_live
     dataset = self.dataset
 
-
+    # Read hard coded value from module (can be updated without closing the application)
+    Zbase = input_shape.Zbase
+    Rbase = input_shape.Rbase
+    Zvolc = input_shape.Zvolc
 
     # Pixel size and incidence angle
     azimuth_pixel_size = dataset['azimuth_pixel_size'][i]
@@ -368,8 +379,8 @@ def getProfileFig(self):
 
 
     # Create array to draw profile
-    X_profile_1 = [-2500, Ix, Kx]   # flanc caldera
-    Y_profile_1 = [2500, Iy, Ky]
+    X_profile_1 = [-Rbase, Ix, Kx]   # flanc caldera
+    Y_profile_1 = [Zbase, Iy, Ky]
 
     X_profile_2 = [Kx, Cx]  # P2
     Y_profile_2 = [Ky, Cy]
@@ -398,12 +409,12 @@ def getProfileFig(self):
     X_profile_22 = [Dx, Lx]
     Y_profile_22 = [Dy, Ly]
 
-    X_profile_11 = [Lx, Jx, 2500]
-    Y_profile_11 = [Ly, Jy, 2500]
+    X_profile_11 = [Lx, Jx, Rbase]
+    Y_profile_11 = [Ly, Jy, Zbase]
 
 
-    X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
+    X_profile_all = [-Rbase, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, Rbase]
+    Y_profile_all = [Zbase, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, Zbase]
   
     X_profile_clickable = [Ix, Kx, Ux, Ex, Fx, Vx, Lx, Jx]
     Y_profile_clickable = [Iy, Ky, Uy, Ey, Fy, Vy, Ly, Jy]
@@ -530,7 +541,10 @@ def getView3dFig(self):
     i = self.index_live
     dataset = self.dataset
 
-
+    # Read hard coded value from module (can be updated without closing the application)
+    Zbase = input_shape.Zbase
+    Rbase = input_shape.Rbase
+    Zvolc = input_shape.Zvolc
 
     # Pixel size and incidence angle
     azimuth_pixel_size = dataset['azimuth_pixel_size'][i]
@@ -658,8 +672,8 @@ def getView3dFig(self):
 
     # Create array to draw profile
 
-    X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
+    X_profile_all = [-Rbase, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, Rbase]
+    Y_profile_all = [Zbase, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, Zbase]
     
    
     #========================== DRAW FIGURE ================================#
@@ -685,7 +699,7 @@ def getView3dFig(self):
 
    
     # Draw Outside of caldera
-    X, Y, Z = get_cone_data(0, 0, -2500, Ix, 2500, Iy, n12, n22)
+    X, Y, Z = get_cone_data(0, 0, -Rbase, Ix, Zbase, Iy, n12, n22)
     self.ax2.plot_wireframe(X, Y, Z, color='grey', alpha=0.2)
     # Caldera ring
     Xc, Yc, Zc = data_for_cylinder_along_z(0, 0, Ix, Iy)
@@ -741,8 +755,8 @@ def getView3dFig(self):
     self.ax2.set_zlabel('Elevation [m]', fontsize=12, rotation=150)
 
 
-    X_profile_all = [-2500, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, 2500]
-    Y_profile_all = [2500, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, 2500]
+    X_profile_all = [-Rbase, Ix, Kx, Cx, Ux, Ex, Fx, Vx, Dx, Lx, Jx, Rbase]
+    Y_profile_all = [Zbase, Iy, Ky, Cy, Uy, Ey, Fy, Vy, Dy, Ly, Jy, Zbase]
 
 
 
@@ -776,6 +790,11 @@ def getSimAmpliFig(self, init):
 
     dataset = csv_to_dict(csv_file_out)
 
+    # Read hard coded value from module (can be updated without closing the application)
+    Zbase = input_shape.Zbase
+    Rbase = input_shape.Rbase
+    Zvolc = input_shape.Zvolc
+
     # find line corresponding to current image 
       # File name
     i = self.index_live
@@ -798,9 +817,6 @@ def getSimAmpliFig(self, init):
 
     # Cone edifice
     Rcald = dataset['Rcald_m'][i]
-    Rbase = 2500
-    Zbase = 2500
-    Zvolc = 3460
     R_P2 = dataset['RP2_m'][i]
     ZP2 = Zvolc - dataset['HP2_m'][i]
     ZBotcrat = ZP2 - dataset['H'][i]
@@ -1058,6 +1074,11 @@ def getPickingResultsFig(self, date_only):
     # Load data for simulated amplitude
     csv_file_out = self.csv_file + '_pick_tmp.csv'
     images_data = pd.read_csv(csv_file_out, comment='#', na_values=['99999','0'])
+
+    # Read hard coded value from module (can be updated without closing the application)
+    Zbase = input_shape.Zbase
+    Rbase = input_shape.Rbase
+    Zvolc = input_shape.Zvolc
 
 
     images_number = len(images_data['filepath'])

@@ -32,6 +32,8 @@ If you have a filtered amplitude with the original one, you can rename the filte
 
 All your SAR image must be available locally in 'folder,img_name' position.
 
+Hard coded data are in "input_shape.py" and correspond to the edifice shape which should remain common to all image loaded.
+These hard coded value can be modified within the application in menubar "input" button. The file will be updated after any change.
 
 
 3. Functionality
