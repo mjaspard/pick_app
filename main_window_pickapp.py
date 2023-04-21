@@ -238,20 +238,16 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
 		self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
 		self.canvas = getSARFig(self)
-		print("flag1")
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
-		print("flag2")
 		# Add figure to layout properties of SARImage Widget
 		self.SARLayout.addWidget(self.canvas)
-		print("flag3")
 		# Draw the figure
 		self.canvas.draw()
-		print("flag4")
 		# Create a tool bar
 		if self.pickSAR_activated:
 			self.toolbar = NavigationToolbar(self.canvas, self.SARImage, coordinates=True)
 			self.SARLayout.addWidget(self.toolbar)
-		print("flag_end")
+
 		# Display crater profile
 		self.initiateProfilePlot()
 		
