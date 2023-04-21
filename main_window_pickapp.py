@@ -238,6 +238,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
 		self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
 		self.canvas = getSARFig(self)
+		print("flag1")
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
 		# Add figure to layout properties of SARImage Widget
 		self.SARLayout.addWidget(self.canvas)
@@ -247,28 +248,28 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		if self.pickSAR_activated:
 			self.toolbar = NavigationToolbar(self.canvas, self.SARImage, coordinates=True)
 			self.SARLayout.addWidget(self.toolbar)
-
+		print("flag2")
 		# Display crater profile
 		self.initiateProfilePlot()
-		
+		print("flag3")		
 		# Update 3d view if selected
 		if self.checkBox_auto_update_view3D.isChecked():
 		    self.initiateView3DPlot()
 		else:
 		    self.pushButton_update_view3D.setChecked(True)
-
+		print("flag4")
 		# Update simulted amplitude view if selected
 		if self.checkBox_auto_update_simamp.isChecked():
 		    self.initiateSimAmpliPlot()
 		else:
 		    self.pushButton_update_simamp.setChecked(True)
-
+		print("flag5")
 		# Update picking results plot is selected
 		if self.checkBox_auto_update_plotpicks.isChecked():
 		    self.pickingResultsPlot()
 		else:
 		    self.pushButton_update_plotpicks.setChecked(True)
-		
+		print("flag6")		
 
 		# Set variable tp allow removing canvas after first creation
 		self.rm_canvas = True
@@ -280,7 +281,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.lim_y_or = self.ax.get_ylim()
 		# Display name of first point to pick
 		self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
-
+		print("flag7")	
 
 	def updateSARPlot(self):
 		""" Function that display the image from the dataset at the index

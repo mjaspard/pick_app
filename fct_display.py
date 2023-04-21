@@ -192,32 +192,27 @@ def getSARFig(self):
         self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
     
     # restore previous zoom value
-    print("self.SAR_zoom = ", self.SAR_zoom)
     if self.SAR_zoom:
-        print("--> set zoom value :", self.lim_x, self.lim_y)
+
         self.ax.set_xlim(self.lim_x)
         self.ax.set_ylim(self.lim_y)
 
 
-    print("test1")
+
     # self.canvas.mpl_connect('key_press_event', lambda event: on_key(event, self)) 
     self.figure.canvas.mpl_connect('button_press_event', lambda event: onclick(event, self))
-    print("test2")
     self.figure.canvas.mpl_connect('key_press_event', lambda event: on_key(event, self))   # Do not work !!! Why ???
-    print("test3")
+
 
     self.ax.set_ylabel("Azimuth [pixels]")
     self.ax.set_xlabel("Range [pixels]")
-    print("test4")
+
     self.ax.set_aspect(abs(np.sin(np.deg2rad(incidence_angle_deg))) * azimuth_pixel_size/range_pixel_size)
-    print("test5")
+
     # Canvas creation
     self.canvas = FigureCanvas(self.figure)
-    print("test6")
     self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-    print("test7")
     self.canvas.setFocus()
-    print("test8")
 
 
 
