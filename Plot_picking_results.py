@@ -1,4 +1,6 @@
 
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 import argparse
 import pandas as pd

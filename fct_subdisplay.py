@@ -96,7 +96,8 @@ def on_key(event, self):
         print("record zoom value :", self.lim_x, self.lim_y)
         self.updateSARPlot()
 
-              
+
+
 
 def onclick(event, self):
     """ Function that will call the pickSARManagement function when clicking on the amplitude image"""

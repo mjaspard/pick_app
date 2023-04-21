@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QSlider, QChe
 from Ui_main_window_pickapp import Ui_MainWindow
 from PyQt5.QtCore import pyqtSlot, QSize, pyqtSignal
 # from Loader import Loader
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -95,6 +97,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pickSAR_activated = False
 		self.SAR_zoom = False
 		self.mem_date_pickplt = False
+		self.toolbar = False
 		self.SAR_change.valueChanged.connect(lambda:  self.updateSAR_info())	# use a lambda to consume the unwanted argument
 		self.SAR_change.sliderReleased.connect(lambda:  self.loadSAR())			# It is to manage decorator inside a class
 		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSAR())
@@ -138,7 +141,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 	# Decorator to bypass function if data not loaded
 	def data_loaded(fonction):
-		print("start deco")
+
 		def check_dataset(self):
 			if self.dataset:
 				return fonction(self)
@@ -227,8 +230,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		if self.rm_canvas:
 			print("-- remove canvas")
 			self.canvas.close()
-			self.toolbar.close()
 
+			if self.toolbar:
+				self.toolbar.close()
 
 		# Get matplotlib figure objetct and min/max value of amplitude image
 		self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
@@ -240,8 +244,10 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# Draw the figure
 		self.canvas.draw()
 		# Create a tool bar
-		self.toolbar = NavigationToolbar(self.canvas, self.SARImage, coordinates=True)
-		self.SARLayout.addWidget(self.toolbar)
+		if self.pickSAR_activated:
+			self.toolbar = NavigationToolbar(self.canvas, self.SARImage, coordinates=True)
+			self.SARLayout.addWidget(self.toolbar)
+
 		# Display crater profile
 		self.initiateProfilePlot()
 		
@@ -284,7 +290,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			"""
 		# print("update sar plot")
 		self.canvas.close()
-		self.toolbar.close()
+		if self.toolbar:
+			self.toolbar.close()
 		self.dataset['expo_greyscale'][self.index_live] = self.SAR_greyscale.value()/100
 		self.canvas = getSARFig(self)
 		
@@ -400,7 +407,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_pickSAR_save.setChecked(False)
 		self.pickSARNext()
 
-
+     
 
 #===============================================================================================================
 #====================     PROFILE OF CRATER          ===========================================================
