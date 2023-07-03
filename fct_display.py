@@ -16,6 +16,7 @@ from fct_subdisplay import *
 
 
 
+
 #===============================================================================================================
 #====================    AMPLITUDE IMAGE     ===================================================================
 #===============================================================================================================
@@ -25,8 +26,10 @@ def getSARFig(self):
     """ Function to draw SAR image in canvas """
 
     # File name
+    print("---->getSARFig:")
     i = self.index_live
     dataset = self.dataset
+
 
     img_dir = dataset['folder'][i]
     img_name = dataset['img_name'][i]
@@ -76,6 +79,22 @@ def getSARFig(self):
 
 
     expo_greyscale = dataset['expo_greyscale'][i] 
+
+    # Shadow 1 et 2 
+    if  self.pushButton_pick_SHAD.isChecked():
+        try:
+            shadow_1_x1 = dataset['shadow1_x1'][i]
+            shadow_1_x2 = dataset['shadow1_x2'][i]
+            shadow_2_x1 = dataset['shadow2_x1'][i]
+            shadow_2_x2 = dataset['shadow2_x2'][i]
+        except:
+            print("No data found for shadows ")
+            shadow_1_x1 = 0
+            shadow_1_x2 = 0
+            shadow_2_x1 = 0
+            shadow_2_x2 = 0
+
+
 
    
 
@@ -190,9 +209,76 @@ def getSARFig(self):
         # self.ax.plot(crater_topCone_edgeN_x,crater_topCone_edgeS_y,marker="o", markeredgecolor="orange", markerfacecolor="orange")
         self.ax.plot(crater_bottom_edgeN_x,crater_bottom_edgeN_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
         self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
-    
+
+    if  self.pushButton_pick_SHAD.isChecked():
+
+        # Found the range value of previous picked shadow1_x1 and shadow2_x2  for same angle incid (Which should correspondto sqme satellite)
+        
+        # convert dataset to panda dataframe
+
+
+        table = convert_dictionary_to_table(dataset)
+        # print(table)
+        # 1. filtered table with data using the same satellite (= same angle incid)
+        condition_column = 'incidence_angle_deg'
+        condition_value = incidence_angle_deg
+        target_column = 'day'
+
+        # extract from table all dates for images using the samen incidence angle (= same satellite)
+        available_dates = extract_values_with_condition(table, condition_column, condition_value, target_column)
+
+        # filtered last_dates series with older date than current SAR image displayed
+        last_dates = available_dates[available_dates < img_date_string]
+        # extract the date for the last SAR image for this satellite and extract the shadow(1-2)_x1 value
+        # to help user picking the same x1 value
+        # try:
+        # extract very last
+        try:
+            last_date = last_dates.iloc[-1]
+            display_ref = True
+
+
+        except:
+            print("No reference for this image")
+            last_date = img_date_string
+            display_ref = False
+
+        print("last_date = {} and type is {}".format(last_date, type(last_date)))
+        condition_column = 'day'
+        condition_value = last_date
+        target_column1 = 'shadow1_x1'
+        target_column2 = 'shadow2_x1'
+        # extract from table shadow_x value to display helping the user to compare with previous image
+        shadow_1_xref = extract_values_with_condition(table, condition_column, condition_value, target_column1)
+        shadow_2_xref = extract_values_with_condition(table, condition_column, condition_value, target_column2)
+        # print("shadow ref = {} {}", shadow_1_xref.value, shadow_1_xref.value)
+        print(shadow_1_xref)
+        print(shadow_1_xref.iloc[0])
+        print("self.pick_SAR_index= {}".format(self.pick_SAR_index))
+
+        if display_ref:
+            self.ax.axvline(x=int(shadow_1_xref), ms=1, color='deeppink', linestyle=(0, (3,5,1,5)))
+            self.ax.text(int(shadow_1_xref), 0.99, str(last_date) , color='lime',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
+            self.ax.axvline(x=int(shadow_2_xref), ms=4, color='deeppink', linestyle=(0, (3,5,1,5)))
+            self.ax.text(int(shadow_2_xref), 0.99, str(last_date), color='orangered',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
+
+
+
+       # self.shadow1_xref 
+
+
+        # Draw shadows
+        self.ax.axvline(x=shadow_1_x1, color='lime', linestyle='--')
+        self.ax.axvline(x=shadow_1_x2, color='lime', linestyle='--')
+
+        self.ax.axvline(x=shadow_2_x1, color='orangered', linestyle='--')
+        self.ax.axvline(x=shadow_2_x2, color='orangered', linestyle='--')
+        # Draw horizontal line to help user to pick on same latitude
+        self.ax.axhline(y=self.shadow_y1, color='peachpuff', linestyle=':')
+
+
     # restore previous zoom value
-    if self.SAR_zoom:
+    if self.SAR_zoom or self.zoom_mem.isChecked():
 
         self.ax.set_xlim(self.lim_x)
         self.ax.set_ylim(self.lim_y)
@@ -240,6 +326,7 @@ Zvolc = input_shape.Zvolc
 def getProfileFig(self):
     """ Function to draw SAR image in canvas """
 
+    print("---->getProfileFig:")
     # File name
     i = self.index_live
     dataset = self.dataset
@@ -540,6 +627,7 @@ def getView3dFig(self):
     """ Function to draw Simulated amplitude based on profile"""
 
   # File name
+    print("---->getView3dFig:")
     i = self.index_live
     dataset = self.dataset
 
@@ -786,6 +874,7 @@ def getSimAmpliFig(self, init):
     2. Call function that will calculate the final matrice
     3. Plot the matrice and return the canvas"""
 
+    print("---->getSimAmpliFig:")
     # Load data for simulated amplitude
 
     csv_file_out = self.csv_file + '_pick_tmp.csv'
@@ -1073,6 +1162,7 @@ def getPickingResultsFig(self, date_only):
     1. Load data locally from csv file (no need somewhere else so do not use self)
     2. Plot the results and return the canvas"""
 
+    print("---->getPickingResultsFig:")
     # Load data for simulated amplitude
     csv_file_out = self.csv_file + '_pick_tmp.csv'
     images_data = pd.read_csv(csv_file_out, comment='#', na_values=['99999','0'])
@@ -1217,6 +1307,7 @@ def getPickingResultsFig(self, date_only):
 
 
 def _add_point(self, x, y=None):
+    print("---->_add_point:")
     if isinstance(x, MouseEvent):
         x, y = int(x.xdata), int(x.ydata)
         self._points[self._dragging_key] = {}
@@ -1224,6 +1315,7 @@ def _add_point(self, x, y=None):
     return x, y
 
 def _remove_point(self, x, _):
+    print("---->_remove_point:")
     if x in self._points:
         self._points[self._dragging_key].pop(x)
 
@@ -1232,6 +1324,7 @@ def _find_neighbor_point(self, event):
     :rtype: ((int, int)|None)
     :return: (x, y) if there are any point around mouse else None
     """
+    print("---->_find_neighbor_point:")
     distance_threshold = 20.0
     nearest_point = None
     min_distance = math.sqrt(2 * (100 ** 2))
@@ -1250,6 +1343,7 @@ def on_click(event, self):
     :type event: MouseEvent
     """
     # left click
+    print("---->on_click:")
     if event.button == 1 and event.inaxes in [self.ax1]:
         key, point = _find_neighbor_point(self, event)
         # print("on_click, point = ", key, point)
@@ -1266,6 +1360,7 @@ def on_release(event, self):
     u""" callback method for mouse release event
     :type event: MouseEvent
     """
+    print("---->on_release:")
     if event.button == 1 and event.inaxes in [self.ax1] and self._dragging_point:
         self._dragging_point = None
         update_plot(self)
@@ -1283,6 +1378,7 @@ def on_motion(event, self):
     """ callback method for mouse motion event
     :type event: MouseEvent
     """
+    print("---->on_motion:")
     if not self._dragging_point:
         return
     if event.xdata is None or event.ydata is None:

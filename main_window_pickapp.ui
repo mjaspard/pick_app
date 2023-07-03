@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1737</width>
+    <width>1783</width>
     <height>965</height>
    </rect>
   </property>
@@ -21,15 +21,13 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
-   <zorder>dockWidget_2</zorder>
-  </widget>
+  <widget class="QWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1737</width>
+     <width>1783</width>
      <height>21</height>
     </rect>
    </property>
@@ -289,7 +287,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>729</width>
+     <width>856</width>
      <height>508</height>
     </size>
    </property>
@@ -439,6 +437,13 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QCheckBox" name="zoom_mem">
+             <property name="text">
+              <string>zoom memory</string>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QLabel" name="label_greyscale">
              <property name="text">
@@ -679,6 +684,32 @@
                </widget>
               </item>
               <item>
+               <spacer name="horizontalSpacer_22">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_pickSHAD_getData">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Get Data</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
                <spacer name="horizontalSpacer_14">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -756,7 +787,36 @@
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="pushButton_pick_SHAD">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Picking Shadow</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_19">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_ellipse">
@@ -1066,7 +1126,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>513</width>
+     <width>550</width>
      <height>400</height>
     </size>
    </property>

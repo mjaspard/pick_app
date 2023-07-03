@@ -7,6 +7,7 @@ import datetime as datetime
 import pandas as pd
 import csv
 from input_shape import *
+import pandas as pd
 # from osgeo import gdal
 # from PyQt5 import QtCore
 
@@ -14,7 +15,7 @@ from input_shape import *
 
 
 #===============================================================================================================
-#====================    FUNCTION     ==========================================================================
+#====================    GENERAL FUNCTION     ==========================================================================
 #===============================================================================================================
 
 
@@ -23,6 +24,7 @@ from input_shape import *
 def csv_to_dict(csv_file):
 
     """ Function to open csv file and write into dictionary"""
+    print("------->csv_to_dict")
     with open(csv_file, 'r') as f:
         # images_data = pd.read_csv(f, sep=',').to_dict()
         data = pd.read_csv(f, sep=',')
@@ -56,10 +58,12 @@ def ellipse_tilt_equation(u, v, a_x,a_y, b_x,b_y, t,theta):
 def ellipse_area(a,b):
     return np.pi*a*b
 
-
-#================== Picking Amplitude Image (SAR) function =========================#
+#===============================================================================================================
+#================== Picking Amplitude Image (SAR) function ====================================================#
+#===============================================================================================================
 
 def pick_point(self, info_str, x, y):
+    print("------->pick_point")
     """Function that will write in the dictionary "inages_data" new coordinate of clicked point"""
     x_str = "{}_x".format(info_str)
     y_str = "{}_y".format(info_str)
@@ -67,8 +71,19 @@ def pick_point(self, info_str, x, y):
     self.dataset[x_str][self.index_live] = round(x)
     self.dataset[y_str][self.index_live] = round(y)
 
+def pick_point_shad(self, info_str, x, y):
+    print("------->pick_point_shad")
+    """Function that will write in the dictionary "inages_data" new x position of clicked point for shadow only"""
+    x_str = "{}".format(info_str)
+    self.shadow_y1 = y
+    # print("{} = [{}:{}]".format(info_str, x, y))
+    self.dataset[x_str][self.index_live] = round(x)
+
+
+
 
 def getPointNameFromIndex(index):
+    print("------->getPointNameFromIndex")
     switcher = {
     0: 'caldera_edgeN',
     1: 'caldera_edgeS',
@@ -78,6 +93,16 @@ def getPointNameFromIndex(index):
     5: 'crater_topCone_edgeN',
     6: 'crater_bottom_edgeN',
     7: 'crater_bottom_edgeS',
+    }
+    return switcher.get(index, "nothing")
+
+def getPointNameFromIndex_shad(index):
+    print("------->getPointNameFromIndex_shad")
+    switcher = {
+    0: 'shadow1_x1',
+    1: 'shadow1_x2',
+    2: 'shadow2_x1',
+    3: 'shadow2_x2',
     }
     return switcher.get(index, "nothing")
 
@@ -107,6 +132,7 @@ def onclick(event, self):
         # Picking options mest be activated
         if self.pushButton_pick_SAR.isChecked():
             # Mouse must be in a place where coordinate are available
+            print("------->onclick pick_SAR.isChecked")
             if event.xdata != None and event.ydata != None:
 
                 # record zoom value if anything pressed
@@ -116,8 +142,6 @@ def onclick(event, self):
                 # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
                 # print("record zoom value :", self.lim_x, self.lim_y)
                 self.SAR_zoom = True
-
-
                 # Get points to pick fron inex value
                 point_str = getPointNameFromIndex(self.pick_SAR_index)
                 pick_point(self, point_str, event.xdata, event.ydata)
@@ -132,7 +156,33 @@ def onclick(event, self):
                 self.pushButton_pickSAR_save.setChecked(True)
                 self.pushButton_update_simamp.setChecked(True)
 
+        # Picking options mest be activated
+        if self.pushButton_pick_SHAD.isChecked():
+            # Mouse must be in a place where coordinate are available
+            print("------->onclick pick_SHAD.isChecked")
+            if event.xdata != None and event.ydata != None:
 
+                # record zoom value if anything pressed
+                # print("coordinate mouse : ", event.xdata, event.ydata)
+                self.lim_x = self.ax.get_xlim()
+                self.lim_y = self.ax.get_ylim()
+                # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
+                # print("record zoom value :", self.lim_x, self.lim_y)
+                self.SAR_zoom = True
+                # Get points to pick fron inex value
+                point_str = getPointNameFromIndex_shad(self.pick_SAR_index)
+                print("point_str = {}".format(point_str))
+                pick_point_shad(self, point_str, event.xdata, event.ydata)
+                # Update figure
+                self.updateSARPlot()
+                # update index
+                self.pick_SAR_index += 1
+                self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 5)
+                # Display new point to pick in information label
+                self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_shad(self.pick_SAR_index))
+                # Make Save button + update sim amp checkable 
+                print("set save button blue")
+                self.pushButton_pickSAR_save.setChecked(True)
 
 #================================================================================================
 #=========================== FUNCTION FOR DRAGGABLE POINTS ON PROFILE ===========================
@@ -143,8 +193,7 @@ def onclick(event, self):
 def update_plot(self):
     """ Write in dataset new value when points move on profile"""
 
-
-
+    print("------->update_plot")
     dataset = self.dataset
     i = self.index_live
 
@@ -407,7 +456,7 @@ def convert_csv(csv_file):
     """ This function is used to convert initial csv file with ellipse data to geodetic data for creating simulated 
     amplitude file"""
 
-
+    print("------->convert_csv")
     with open(csv_file, 'r') as f:
         # images_data = pd.read_csv(f, sep=',').to_dict()
         images_data = pd.read_csv(f, sep=',')
@@ -517,7 +566,7 @@ def create_csv_tmp(self):
     """ This function is used to convert images_data dictionary (ellipse data ) to geodetic data for creating simulated 
     amplitude file"""
 
-
+    print("------->create_csv_tmp")
 
     images_data = self.dataset
     #images_data = images_data.to_dict()
@@ -624,7 +673,7 @@ def create_csv_tmp(self):
 def updateParametersFile(filename, param, new_value):
     """ This function is used to replace in a file the value of a parameters.
     The parameters must be written before a #, and the value just after the dash """
-
+    print("------->updateParametersFile")
     # Open the file in 'read' mode and read all the lines into a list
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -649,7 +698,7 @@ def updateParametersFile(filename, param, new_value):
 def LooadParametersFile(filename):
     """ This function is load in a dictionarry all paramaters from input shape file
     each line with equal in it and not starting with # will be recorded in the dico """
-
+    print("------->LooadParametersFile")
     dict_param = {}
     # Open the file in 'read' mode and read all the lines into a list
     # Open the file in 'read' mode and read all the lines into a list
@@ -676,4 +725,13 @@ def LooadParametersFile(filename):
     return dict_param
 
 
+
+def convert_dictionary_to_table(dictionary):
+    df = pd.DataFrame.from_dict(dictionary, orient='columns')
+    return df
+
+
+def extract_values_with_condition(data_frame, condition_column, condition_value, target_column):
+    filtered_values = data_frame.loc[data_frame[condition_column] == condition_value, target_column]
+    return filtered_values
 # end
