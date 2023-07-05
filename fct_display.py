@@ -257,10 +257,10 @@ def getSARFig(self):
         print("self.pick_SAR_index= {}".format(self.pick_SAR_index))
 
         if display_ref:
-            self.ax.axvline(x=int(shadow_1_xref), ms=1, color='deeppink', linestyle=(0, (3,5,1,5)))
-            self.ax.text(int(shadow_1_xref), 0.99, str(last_date) , color='lime',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
-            self.ax.axvline(x=int(shadow_2_xref), ms=4, color='deeppink', linestyle=(0, (3,5,1,5)))
-            self.ax.text(int(shadow_2_xref), 0.99, str(last_date), color='orangered',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
+            self.ax.axvline(x=int(shadow_1_xref.iloc[0]), ms=1, color='deeppink', linestyle=(0, (3,5,1,5)))
+            self.ax.text(int(shadow_1_xref.iloc[0]), 0.99, str(last_date) , color='lime',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
+            self.ax.axvline(x=int(shadow_2_xref.iloc[0]), ms=4, color='deeppink', linestyle=(0, (3,5,1,5)))
+            self.ax.text(int(shadow_2_xref.iloc[0]), 0.99, str(last_date), color='orangered',backgroundcolor='whitesmoke',fontsize='x-small', ha='right', va='top', rotation=90, transform=self.ax.get_xaxis_transform())
 
 
 
