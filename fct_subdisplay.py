@@ -28,6 +28,7 @@ def csv_to_dict(csv_file):
     with open(csv_file, 'r') as f:
         # images_data = pd.read_csv(f, sep=',').to_dict()
         data = pd.read_csv(f, sep=',')
+        # data = data.sort_values(by=['folder', 'day'])
         # replace NaN values with 0
         data = data.fillna(0)
         data = data.to_dict()

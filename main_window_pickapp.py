@@ -370,7 +370,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		print("-updateSAR_info")
 		self.index_hold = self.SAR_change.value()
 		img_dir = self.dataset['folder'][self.index_hold]
-		satname = img_dir.split('/')[-2]
+		satname = img_dir.split('/')[-1]
 		img_date_string = self.dataset['day'][self.index_hold]
 		text = "{} : {}".format(img_date_string, satname)
 		self.label_SAR.setText(text)

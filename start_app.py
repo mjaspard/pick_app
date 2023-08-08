@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # start_app.py
 import sys
 from PyQt5.QtWidgets import QApplication

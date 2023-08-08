@@ -1,0 +1,17 @@
+filepath,img_date,img_hour,range_pixel_size,incidence_angle_deg,shadow1_x1,shadow1_x2,shadow2_x1,shadow2_x2,shadow1_depth,shadow2_depth
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210516.HH.mod_Thres_Crop.r4,20210516,0.0,1.24,-34.9455,76,262,271,341,189.05497652631072,71.14972234861156
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210523.HH.mod_Thres_Crop.r4,20210523,0.0,1.24,-34.9455,76,259,268,347,186.00570271137022,80.29754379343304
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210601.HH.mod_Thres_Crop.r4,20210601,0.0,1.24,-34.9455,77,261,266,354,187.02212731635038,89.44536523825452
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210608.HH.mod_Thres_Crop.r4,20210608,0.0,1.24,-34.9455,77,266,271,356,192.1042503412512,86.39609142331403
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210609.HH.mod_Thres_Crop.r4,20210609,0.0,1.24,-34.9455,77,267,269,350,193.1206749462314,82.33039300339337
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/CSKA/20210703.HH.mod_Thres_Crop.r4,20210703,0.0,1.24,-34.9455,77,254,268,346,179.9071550814892,79.28111918845288
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1A_174_20210513_A.VV.mod_Thres_Crop.r4,20210513,0.0,2.3295,-34.02,96,191,195,243,183.42487904984108,92.67783362518286
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1B_174_20210519_A.VV.mod_Thres_Crop.r4,20210519,0.0,2.3295,-34.02,97,193,196,242,185.3556672503657,88.81625722413357
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1A_174_20210525_A.VV.mod_Thres_Crop.r4,20210525,0.0,2.3295,-34.02,100,192,195,246,177.63251444826713,98.47019822675678
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1B_174_20210531_A.VV.mod_Thres_Crop.r4,20210531,0.0,2.3295,-34.02,96,194,196,242,189.217243651415,88.81625722413357
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1A_174_20210606_A.VV.mod_Thres_Crop.r4,20210606,0.0,2.3295,-34.02,96,197,198,243,195.0096082529889,86.88546902360892
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1B_174_20210612_A.VV.mod_Thres_Crop.r4,20210612,0.0,2.3295,-34.02,98,196,197,245,189.217243651415,92.67783362518286
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1A_174_20210618_A.VV.mod_Thres_Crop.r4,20210618,0.0,2.3295,-34.02,94,195,196,242,195.0096082529889,88.81625722413357
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1B_174_20210624_A.VV.mod_Thres_Crop.r4,20210624,0.0,2.3295,-34.02,96,193,197,246,187.28645545089034,94.6086218257075
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1A_174_20210630_A.VV.mod_Thres_Crop.r4,20210630,0.0,2.3295,-34.02,96,196,197,245,193.0788200524643,92.67783362518286
+/Users/maxime/Project/Pick_Crater/pick_app/test_data/Sentinel1A/S1B_174_20210706_A.VV.mod_Thres_Crop.r4,20210706,0.0,2.3295,-34.02,98,195,196,245,187.28645545089034,94.6086218257075

@@ -35,7 +35,7 @@ def getSARFig(self):
     img_name = dataset['img_name'][i]
     filepath = os.path.join(img_dir, img_name)
     filepath_filter = filepath.replace(".r4", "_Filtre.r4")
-    satname = img_dir.split('/')[-2]
+    satname = img_dir.split('/')[-1]
 
     # Acquisition time
     img_date_string = dataset['day'][i]

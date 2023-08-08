@@ -48,9 +48,6 @@ These hard coded value can be modified within the application in menubar "input"
 
 
 
-
-
-
 4. Picking rules
 
 	
@@ -65,8 +62,8 @@ Picking ellipses from SAR Image:
 -	The button save turns to blue as soon as modification has been entered, clic on it to update your csv file.
 -	The 'Filtered image' button switch between both amplitude image if present.
 -	Some ellipses do not have south points to clic because shape is considered as follow:
-o	Crater outer ring is considered centered on caldera ring
-o	Top cone is considered centered on inner crater.
+		- Crater outer ring is considered centered on caldera ring
+	    - Top cone is considered centered on inner crater.
 		
 	
 Picking from Profile:
