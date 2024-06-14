@@ -429,6 +429,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				# self.canvas_profile.close()
 
 
+
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_profile = getProfileFig(self)
 
@@ -440,6 +441,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			self.Profile_Layout.addWidget(self.toolbar_profile)
 			# Draw the figure
 			self.canvas_profile.draw()
+
+			# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
+			create_csv_tmp(self)
 
 
 	def updateProfilePlt(self):
@@ -463,6 +467,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			# Draw the figure
 			self.canvas_profile.draw()
 
+			# Run script to convert ellipse data points to geo-data (Rayon, altitude...) 
+			create_csv_tmp(self)
 
 #===============================================================================================================
 #=================================   3D VIEW      ==============================================================
