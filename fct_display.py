@@ -106,6 +106,28 @@ def getSARFig(self):
     # Extract band
     inputArray = (np.array(Band.ReadAsArray()**expo_greyscale))
 
+    # Define min/max to clip value for better quality based on mean +- SD *2
+    mean = np.mean(inputArray)
+    std_dev = np.std(inputArray)
+
+    # Change range value if mean < 10
+    if int(mean) < 10:
+        inputArray = inputArray * 1000
+        mean = np.mean(inputArray)
+        std_dev = np.std(inputArray)
+
+
+    self.SAR_clip_min.setMinimum((mean - ( 2 * std_dev)))
+    self.SAR_clip_min.setMaximum((mean + ( 2 * std_dev)))
+
+    self.SAR_clip_max.setMinimum((mean - ( 2 * std_dev)))
+    self.SAR_clip_max.setMaximum((mean + ( 2 * std_dev)))
+
+    if not self.updateSARFlag:
+        self.SAR_clip_min.setValue(mean - ( 2 * std_dev))
+        self.SAR_clip_max.setValue(mean + ( 2 * std_dev))
+
+
 
     # Cleanup
     del Raster, Band
@@ -163,8 +185,10 @@ def getSARFig(self):
         vmin = float((self.SAR_clip_min.value()/255))
         vmax = float((self.SAR_clip_max.value()/255))
     else:
-        vmin = int(self.SAR_clip_min.value())
-        vmax = int(self.SAR_clip_max.value())
+
+        vmin = self.SAR_clip_min.value()
+        vmax = self.SAR_clip_max.value()
+        print("check if vmin < vmax ==> ", vmin, " < ", vmax)
     # print("greyscale, vmin, vmax =", expo_greyscale, vmin, vmax)
     if vmin < vmax:
         self.ax.imshow(inputArray, cmap='Greys_r', vmin=vmin, vmax=vmax)

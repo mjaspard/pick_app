@@ -98,6 +98,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.SAR_zoom = False
 		self.mem_date_pickplt = False
 		self.toolbar = False
+		self.updateSARFlag = False
 		self.SAR_change.valueChanged.connect(lambda:  self.updateSAR_info())	# use a lambda to consume the unwanted argument
 		self.SAR_change.sliderReleased.connect(lambda:  self.loadSAR())			# It is to manage decorator inside a class
 		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSAR())
@@ -234,9 +235,10 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			if self.toolbar:
 				self.toolbar.close()
 
+
 		# Get matplotlib figure objetct and min/max value of amplitude image
-		self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
-		self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
+		# self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
+		# self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
 		self.canvas = getSARFig(self)
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
 		# Add figure to layout properties of SARImage Widget
@@ -327,7 +329,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 	@data_loaded
 	def loadSAR(self):
-		# print("on_SAR_change_changed")
+		print("on_SAR_change_changed")
+		self.updateSARFlag = False
 		self.index_live = self.SAR_change.value()
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
 		self.initiateSARPlot()
@@ -335,6 +338,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 	@data_loaded
 	def updateSAR(self):
 		print("updateSAR request")
+		self.updateSARFlag = True
 		self.updateSARPlot()
 
 	@data_loaded
