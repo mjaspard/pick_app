@@ -116,16 +116,18 @@ def getSARFig(self):
         mean = np.mean(inputArray)
         std_dev = np.std(inputArray)
 
+    min_val = int(mean - ( 2 * std_dev))
+    max_val = int(mean + ( 2 * std_dev))
 
-    self.SAR_clip_min.setMinimum((mean - ( 2 * std_dev)))
-    self.SAR_clip_min.setMaximum((mean + ( 2 * std_dev)))
+    self.SAR_clip_min.setMinimum(min_val)
+    self.SAR_clip_min.setMaximum(max_val)
 
-    self.SAR_clip_max.setMinimum((mean - ( 2 * std_dev)))
-    self.SAR_clip_max.setMaximum((mean + ( 2 * std_dev)))
+    self.SAR_clip_max.setMinimum(min_val)
+    self.SAR_clip_max.setMaximum(max_val)
 
     if not self.updateSARFlag:
-        self.SAR_clip_min.setValue(mean - ( 2 * std_dev))
-        self.SAR_clip_max.setValue(mean + ( 2 * std_dev))
+        self.SAR_clip_min.setValue(min_val)
+        self.SAR_clip_max.setValue(max_val)
 
 
 
@@ -188,7 +190,7 @@ def getSARFig(self):
 
         vmin = self.SAR_clip_min.value()
         vmax = self.SAR_clip_max.value()
-        print("check if vmin < vmax ==> ", vmin, " < ", vmax)
+
     # print("greyscale, vmin, vmax =", expo_greyscale, vmin, vmax)
     if vmin < vmax:
         self.ax.imshow(inputArray, cmap='Greys_r', vmin=vmin, vmax=vmax)
