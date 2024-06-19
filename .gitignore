@@ -1,0 +1,16 @@
+data
+Data.zip
+.DS_Store
+.jedi
+.eric7project/
+**/DATA_SAR_AMPLI_NYIR21_FOR_PICKING
+**/old
+**/__pycache__
+Nyigo_crater
+csv
+run*
+SASHA*
+test.py
+README.docx
+input_shape.py
+env/
