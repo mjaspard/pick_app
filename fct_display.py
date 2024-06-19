@@ -104,20 +104,42 @@ def getSARFig(self):
     self.SAR_width = nRows
     self.SAR_height = nCols
     # Extract band
-    inputArray = (np.array(Band.ReadAsArray()**expo_greyscale))
+    # inputArray = np.array(Band.ReadAsArray()** expo_greyscale)
+    inputArray = np.array(Band.ReadAsArray())
+
+    # Replace -32768 with NaN
+    inputArray = np.where(inputArray == -32768, np.nan, inputArray)
 
     # Define min/max to clip value for better quality based on mean +- SD *2
-    mean = np.mean(inputArray)
-    std_dev = np.std(inputArray)
+    mean = np.nanmean(inputArray)
+    std_dev = np.nanstd(inputArray)
+    max_element = np.nanmax(inputArray)
+    min_element = np.nanmin(inputArray)
 
-    # Change range value if mean < 10
-    if int(mean) < 10:
+    # Change range value range of value is inside -10 : 10
+    if ((np.abs(max_element) < 10) & (np.abs(min_element) < 10)):
+        print(" !!! change range *1000")
         inputArray = inputArray * 1000
         mean = np.mean(inputArray)
         std_dev = np.std(inputArray)
 
     min_val = int(mean - ( 2 * std_dev))
     max_val = int(mean + ( 2 * std_dev))
+
+    # print("!!! check image value ")
+
+    # print("- gray, max , min -")
+    # print(expo_greyscale)
+    # print(max_element)
+    # print(min_element)
+    # print(type(min_element))
+    # print("- mean std -")
+    # print(mean)
+    # print(std_dev) 
+    # print("- clip max min -")
+    # print(max_val)
+    # print(min_val)
+    # print("-----")
 
     self.SAR_clip_min.setMinimum(min_val)
     self.SAR_clip_min.setMaximum(max_val)
@@ -130,7 +152,7 @@ def getSARFig(self):
         self.SAR_clip_max.setValue(max_val)
 
 
-
+    inputArray = inputArray ** expo_greyscale
     # Cleanup
     del Raster, Band
 
