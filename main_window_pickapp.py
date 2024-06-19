@@ -235,7 +235,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			if self.toolbar:
 				self.toolbar.close()
 
-
+		self.updateSARFlag = False
 		# Get matplotlib figure objetct and min/max value of amplitude image
 		# self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
 		# self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
@@ -330,7 +330,6 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 	@data_loaded
 	def loadSAR(self):
 		print("on_SAR_change_changed")
-		self.updateSARFlag = False
 		self.index_live = self.SAR_change.value()
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
 		self.initiateSARPlot()
