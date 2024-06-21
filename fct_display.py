@@ -24,6 +24,7 @@ from fct_subdisplay import *
 def getSARFig(self):
     """ Function to draw SAR image in canvas """
 
+    print("----> getSARFig()")
     # File name
     i = self.index_live
     dataset = self.dataset
@@ -118,7 +119,7 @@ def getSARFig(self):
 
     # Change range value range of value is inside -10 : 10
     if ((np.abs(max_element) < 10) & (np.abs(min_element) < 10)):
-        print(" !!! change range *1000")
+        print("-------> change range (*1000)")
         inputArray = inputArray * 1000
         mean = np.mean(inputArray)
         std_dev = np.std(inputArray)
@@ -141,13 +142,17 @@ def getSARFig(self):
     # print(min_val)
     # print("-----")
 
-    self.SAR_clip_min.setMinimum(min_val)
-    self.SAR_clip_min.setMaximum(max_val)
 
-    self.SAR_clip_max.setMinimum(min_val)
-    self.SAR_clip_max.setMaximum(max_val)
 
     if not self.updateSARFlag:
+
+        print("-------> set clip min/max/current value")
+        self.SAR_clip_min.setMinimum(min_val)
+        self.SAR_clip_min.setMaximum(max_val)
+
+        self.SAR_clip_max.setMinimum(min_val)
+        self.SAR_clip_max.setMaximum(max_val)
+
         self.SAR_clip_min.setValue(min_val)
         self.SAR_clip_max.setValue(max_val)
 
@@ -217,7 +222,7 @@ def getSARFig(self):
     if vmin < vmax:
         self.ax.imshow(inputArray, cmap='Greys_r', vmin=vmin, vmax=vmax)
     else:
-        print("Value not coherent to display this image : please check clip value!")
+        print("-------> Value not coherent to display this image : please check clip value!")
 
 
     if self.pushButton_ellipse.isChecked():
@@ -240,8 +245,10 @@ def getSARFig(self):
         self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
     
     # restore previous zoom value
+    print("-------> self.SAR_zoom = ", self.SAR_zoom)
     if self.SAR_zoom:
 
+        print("-------> set zoom to {} : {}".format(self.lim_x, self.lim_y))
         self.ax.set_xlim(self.lim_x)
         self.ax.set_ylim(self.lim_y)
 

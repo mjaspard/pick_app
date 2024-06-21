@@ -113,8 +113,8 @@ def onclick(event, self):
                 # print("coordinate mouse : ", event.xdata, event.ydata)
                 self.lim_x = self.ax.get_xlim()
                 self.lim_y = self.ax.get_ylim()
-                # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
-                # print("record zoom value :", self.lim_x, self.lim_y)
+                # # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
+                # # print("record zoom value :", self.lim_x, self.lim_y)
                 self.SAR_zoom = True
 
 

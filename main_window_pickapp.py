@@ -101,9 +101,9 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.updateSARFlag = False
 		self.SAR_change.valueChanged.connect(lambda:  self.updateSAR_info())	# use a lambda to consume the unwanted argument
 		self.SAR_change.sliderReleased.connect(lambda:  self.loadSAR())			# It is to manage decorator inside a class
-		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSAR())
-		self.SAR_clip_max.sliderReleased.connect(lambda:  self.updateSAR())
-		self.SAR_clip_min.sliderReleased.connect(lambda:  self.updateSAR())
+		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSARContrast())
+		self.SAR_clip_max.sliderReleased.connect(lambda:  self.updateSARContrast())
+		self.SAR_clip_min.sliderReleased.connect(lambda:  self.updateSARContrast())
 		self.pushButton_SAR_left.clicked.connect(lambda:  self.decrementSAR())
 		self.pushButton_SAR_right.clicked.connect(lambda:  self.incrementSAR())
 		self.pushButton_ellipse.clicked.connect(lambda:  self.updateSAR())
@@ -229,13 +229,26 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# Close current figure if it exists:
 		print(" initiate sar plot")
 		if self.rm_canvas:
-			print("-- remove canvas")
+			print("-- remove canvas (memorise lim_x and lim_y)")
+			self.lim_x = self.ax.get_xlim()
+			self.lim_y = self.ax.get_ylim()
 			self.canvas.close()
 
 			if self.toolbar:
 				self.toolbar.close()
 
-		self.updateSARFlag = False
+
+
+		# Manage zoom memorisation
+		if self.checkBox_mem_zoom.isChecked():
+			self.SAR_zoom = True
+		else:
+			self.SAR_zoom = False
+
+
+		# Do not reinit contrast value  if checkbox selected
+		if not self.checkBox_mem_clipValue.isChecked():
+			self.updateSARFlag = False
 		# Get matplotlib figure objetct and min/max value of amplitude image
 		# self.SAR_clip_min.setValue(int(self.SAR_clip_min.minimum()))
 		# self.SAR_clip_max.setValue(int(self.SAR_clip_max.maximum()))
@@ -290,6 +303,17 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
 			3: we do not set clip min/max  
 			"""
+		print(" update sar plot")
+		# Manage zoom memorisation
+		self.lim_x = self.ax.get_xlim()
+		self.lim_y = self.ax.get_ylim()
+
+
+		if self.checkBox_mem_zoom.isChecked():
+			self.SAR_zoom = True
+
+
+
 		# print("update sar plot")
 		self.canvas.close()
 		if self.toolbar:
@@ -329,9 +353,13 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 	@data_loaded
 	def loadSAR(self):
-		print("on_SAR_change_changed")
+		print("initiateSAR request")
 		self.index_live = self.SAR_change.value()
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
+		self.lim_x = self.ax.get_xlim()
+		self.lim_y = self.ax.get_ylim()
+		if self.checkBox_mem_zoom.isChecked():
+			self.SAR_zoom = True
 		self.initiateSARPlot()
 
 	@data_loaded
@@ -339,6 +367,18 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		print("updateSAR request")
 		self.updateSARFlag = True
 		self.updateSARPlot()
+
+
+	@data_loaded
+	def updateSARContrast(self):
+		print("updateSAR request")
+		self.updateSARFlag = True
+		self.lim_x = self.ax.get_xlim()
+		self.lim_y = self.ax.get_ylim()
+		self.SAR_zoom = True
+		self.updateSARPlot()
+
+
 
 	@data_loaded
 	def updateSAR_info(self):
@@ -424,14 +464,11 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				"""
 
 			# Close current figure if it exists:
-			print(" initiate sar plot")
+			print(" initiate profile plot")
 			if self.rm_canvas:
 				self.canvas_profile.close()
 				self.toolbar_profile.close()
-				print("-- remove canvas profile")
-				# self.canvas_profile.close()
-
-
+				# print("-- remove profile canvas")
 
 			# Get matplotlib figure objetct and min/max value of amplitude image
 			self.canvas_profile = getProfileFig(self)
@@ -455,7 +492,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
 				3: we do not set clip min/max  
 				"""
-			print("update sar plot")
+			print("update profile plot")
 			self.canvas_profile.close()
 			self.toolbar_profile.close()
 			# Get matplotlib figure objetct and min/max value of amplitude image
@@ -558,8 +595,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			return
 
 		# Close current figure if it exists:
-		print("run pickingResultsPlot")
-		print("self.rm_canvas_pickresults = ", self.rm_canvas_pickresults)
+		print("initiate pickingResultsPlot")
+		print("--> elf.rm_canvas_pickresults = ", self.rm_canvas_pickresults)
 		if self.rm_canvas_pickresults:
 			self.canvas_pickresults.close()
 			self.toolbar_pickresults.close()

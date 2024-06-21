@@ -95,6 +95,10 @@ Picking results:
 
 
 
+notes:
+
+Next command is used to convert ui file (from QT designer) into python file
+pyuic5 -x main_window_pickapp.ui -o Ui_main_window_pickapp.py
 
 
 

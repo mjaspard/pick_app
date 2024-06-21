@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window_pickapp.ui'
+# Form implementation generated from reading ui file '/Users/maxime/Project/Pick_Crater/pick_app/main_window_pickapp.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -179,14 +179,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.SARImage)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.checkBox_mem_zoom = QtWidgets.QCheckBox(self.dockWidgetContents_2)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(False)
-        self.checkBox_mem_zoom.setFont(font)
-        self.checkBox_mem_zoom.setIconSize(QtCore.QSize(12, 12))
-        self.checkBox_mem_zoom.setObjectName("checkBox_mem_zoom")
-        self.verticalLayout_2.addWidget(self.checkBox_mem_zoom)
         self.label_greyscale = QtWidgets.QLabel(self.dockWidgetContents_2)
         self.label_greyscale.setObjectName("label_greyscale")
         self.verticalLayout_2.addWidget(self.label_greyscale)
@@ -207,14 +199,6 @@ class Ui_MainWindow(object):
         self.label_clip = QtWidgets.QLabel(self.dockWidgetContents_2)
         self.label_clip.setObjectName("label_clip")
         self.verticalLayout_2.addWidget(self.label_clip)
-        self.checkBox_mem_clipValue = QtWidgets.QCheckBox(self.dockWidgetContents_2)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(False)
-        self.checkBox_mem_clipValue.setFont(font)
-        self.checkBox_mem_clipValue.setIconSize(QtCore.QSize(12, 12))
-        self.checkBox_mem_clipValue.setObjectName("checkBox_mem_clipValue")
-        self.verticalLayout_2.addWidget(self.checkBox_mem_clipValue)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.SAR_clip_min = QtWidgets.QSlider(self.dockWidgetContents_2)
@@ -587,11 +571,9 @@ class Ui_MainWindow(object):
         self.label_SAR_index.setText(_translate("MainWindow", "index"))
         self.pushButton_SAR_right.setText(_translate("MainWindow", ">>"))
         self.label_SAR.setText(_translate("MainWindow", "Date : Satellite"))
-        self.checkBox_mem_zoom.setText(_translate("MainWindow", "Mem zoom"))
         self.label_greyscale.setText(_translate("MainWindow", "greyscale"))
         self.label_greyscale_val.setText(_translate("MainWindow", "greyscale"))
         self.label_clip.setText(_translate("MainWindow", "Clip Value"))
-        self.checkBox_mem_clipValue.setText(_translate("MainWindow", "Mem clip val"))
         self.label_clip_max.setText(_translate("MainWindow", "clip max"))
         self.label_clip_min.setText(_translate("MainWindow", "clip min"))
         self.label_pickingSAR_fixe_2.setText(_translate("MainWindow", "right click to Pick:"))
