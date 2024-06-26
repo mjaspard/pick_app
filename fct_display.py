@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use('Qt5Agg')
-
+from math import acos, sin
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import matplotlib as plt
@@ -13,6 +13,7 @@ from osgeo import gdal
 from PyQt5 import QtCore
 from statistics import mean 
 from fct_subdisplay import *
+
 
 
 
@@ -243,7 +244,39 @@ def getSARFig(self):
         # self.ax.plot(crater_topCone_edgeN_x,crater_topCone_edgeS_y,marker="o", markeredgecolor="orange", markerfacecolor="orange")
         self.ax.plot(crater_bottom_edgeN_x,crater_bottom_edgeN_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
         self.ax.plot(crater_bottom_edgeS_x,crater_bottom_edgeS_y,marker="o", markeredgecolor="magenta", markerfacecolor="magenta")
-    
+
+
+
+    # Display pick of depression Sud Ouest 
+
+    if self.pushButton_pick_deprVol.isChecked():
+
+
+        self.dataset_deprVol['dx'][i] = self.deltaDeprSO
+        print("self.deltaDeprSO = ",self.deltaDeprSO)
+
+
+        # Calculate absolute value of picking axis position
+        depVol_xref = int(dataset['caldera_edgeN_x'][i]) - self.dataset_deprVol['dx'][i] 
+        # Calculate position of points located on caldera ellipse on the picking axis position
+        y0 = caldera_edgeN_y + ((caldera_edgeS_y - caldera_edgeN_y ) / 2)
+        Rcald = (caldera_edgeS_y - caldera_edgeN_y ) / 2
+        angle_rad = acos(self.deltaDeprSO / Rcald)
+
+        self.dataset_deprVol['d0_N_y'][i] =  y0 - (sin(angle_rad) * Rcald)
+        self.dataset_deprVol['d0_S_y'][i] =  y0 + (sin(angle_rad) * Rcald)
+
+        # Display vertical axes on which we can pick borders of depression
+        self.ax.axvline(x=depVol_xref, ms=2, color='orangered', linestyle='--')
+        self.ax.plot(depVol_xref, self.dataset_deprVol['depression_edgeN_y'][i],marker="o", markeredgecolor="gold", markerfacecolor="gold")
+        self.ax.plot(depVol_xref, self.dataset_deprVol['depression_edgeS_y'][i],marker="o", markeredgecolor="gold", markerfacecolor="gold")
+        self.ax.plot(depVol_xref, self.dataset_deprVol['d0_N_y'][i],marker="o", markeredgecolor="blue", markerfacecolor="blue")
+        self.ax.plot(depVol_xref, self.dataset_deprVol['d0_S_y'][i],marker="o", markeredgecolor="blue", markerfacecolor="blue")
+
+
+
+
+   
     # restore previous zoom value
     print("-------> self.SAR_zoom = ", self.SAR_zoom)
     if self.SAR_zoom:

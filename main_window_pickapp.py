@@ -14,6 +14,9 @@ import pandas as pd
 import shutil, os
 from fct_display import *
 import importlib
+from input_shape import *
+
+
 
 
 
@@ -41,13 +44,14 @@ class PopupDialog(QDialog):
 	""" Opening a dialog box to enter manually edifice shape"""
 
 
-	value_saved = pyqtSignal(str, str, str)
+	value_saved = pyqtSignal(str, str, str, str)
 	def __init__(self):
 		super().__init__()
 
 		self.input1 = QLineEdit()
 		self.input2 = QLineEdit()
 		self.input3 = QLineEdit()
+		self.input4 = QLineEdit()
 		self.save_button = QPushButton('Save')
 		
 
@@ -55,6 +59,7 @@ class PopupDialog(QDialog):
 		self.input1.setText(dict_param['Rbase'])
 		self.input2.setText(dict_param['Zbase'])
 		self.input3.setText(dict_param['Zvolc'])
+		self.input4.setText(dict_param['deltaDeprSO'])
 
 		layout = QVBoxLayout()
 		layout.addWidget(QLabel('Base size [m]:'))
@@ -63,17 +68,19 @@ class PopupDialog(QDialog):
 		layout.addWidget(self.input2)
 		layout.addWidget(QLabel('Summit altitude [m]:'))
 		layout.addWidget(self.input3)
+		layout.addWidget(QLabel('Delta x depression Sud Ouest [Nyam]'))
+		layout.addWidget(self.input4)
 		layout.addWidget(self.save_button)
 
 		self.save_button.clicked.connect(self.save_values)
-
 		self.setLayout(layout)
 
 	def save_values(self):
 		value1 = self.input1.text()
 		value2 = self.input2.text()
 		value3 = self.input3.text()
-		self.value_saved.emit(value1, value2, value3)
+		value4 = self.input4.text()
+		self.value_saved.emit(value1, value2, value3, value4)
 		self.close()
 
 
@@ -99,6 +106,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.mem_date_pickplt = False
 		self.toolbar = False
 		self.updateSARFlag = False
+		self.deltaDeprSO = deltaDeprSO
 		self.SAR_change.valueChanged.connect(lambda:  self.updateSAR_info())	# use a lambda to consume the unwanted argument
 		self.SAR_change.sliderReleased.connect(lambda:  self.loadSAR())			# It is to manage decorator inside a class
 		self.SAR_greyscale.sliderReleased.connect(lambda:  self.updateSARContrast())
@@ -110,6 +118,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_filtered_SAR.clicked.connect(lambda:  self.updateSAR())
 		self.pushButton_pick_SAR.clicked.connect(lambda:  self.pickSAR())
 		self.frame_pickSAR.hide()
+		self.pushButton_pick_deprVol.clicked.connect(lambda:  self.pickDeprVol())
 		self.pushButton_pickSAR_next.clicked.connect(lambda: self.pickSARNext())
 		self.pushButton_pickSAR_previous.clicked.connect(lambda: self.pickSARPrev())
 		self.pushButton_pickSAR_save.clicked.connect(lambda: self.pickSARSave())
@@ -137,8 +146,10 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		# manage active views
 		self.dockWidget_SimAmp.setVisible(False)
 		self.dockWidget_PlotPicks.setVisible(False)
+		self.dockWidget_profile.setVisible(False)
+		self.dockWidget_view3D.setVisible(False)
 		# Resize main window
-		self.resize(1500, 500)
+		self.resize(1000, 1000)
 
 	# Decorator to bypass function if data not loaded
 	def data_loaded(fonction):
@@ -159,24 +170,55 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		"""
 		popup = PopupDialog()
 		print(os.getcwd())
-		popup.value_saved.connect(lambda v1, v2, v3: self.storeInputData(v1, v2, v3))
+		popup.value_saved.connect(lambda v1, v2, v3, v4: self.storeInputData(v1, v2, v3, v4))
 		# popup.value_saved.connect(self.storeInputData(v1, v2, v3))
 		popup.exec_()
 
-	def storeInputData(self, v1, v2, v3):
+	def storeInputData(self, v1, v2, v3, v4):
 		"""This function will save the input data from popup when validated with save button into variable"""
 		updateParametersFile('input_shape.py', 'Rbase', v1)
 		updateParametersFile('input_shape.py', 'Zbase', v2)
 		updateParametersFile('input_shape.py', 'Zvolc', v3)
+		updateParametersFile('input_shape.py', 'deltaDeprSO', v4)
 
 		# reload new value
 		input_shape = importlib.import_module('input_shape')
 		input_shape = importlib.reload(input_shape)
 		Zbase = input_shape.Zbase
+		Rbase = input_shape.Rbase
+		Zvolc = input_shape.Zvolc
+		self.deltaDeprSO = input_shape.deltaDeprSO
 		# Update graphics
 		if self.dataset:
 			self.updateSARPlot()
 
+
+	def Open_csv_deprVol(self):
+		""" Function that open csv file and write data into a dictionary (data for depression at SO Nyiam only)
+			If not existing , just create it with empty value
+			"""
+		print("-Open_csvdeprVol")
+		# Check if a file deprVol already exist, if not create it and fill it 
+		self.csv_file_deprVol = self.csv_file.replace(".csv", "_deprVol.csv")
+		print("--> open csv file for deprVol : ", self.csv_file_deprVol)
+		if not os.path.exists(self.csv_file_deprVol):
+
+			print("--> create new file")
+			# Create a new dataset based on the main one, keeping folder and image_name and adding pick parameters		
+			keys_to_keep = ['folder', 'img_name', 'caldera_edgeN_x', 'caldera_edgeN_y','caldera_edgeS_y']
+			self.dataset_deprVol = {key: self.dataset[key] for key in keys_to_keep}
+			# Add new columns inside the new dataset
+			new_columns = ['dx', 'd0_N_y', 'd0_S_y', 'depression_edgeN_y', 'depression_edgeS_y']
+			for column in new_columns:
+				self.dataset_deprVol[column] = None
+			# create the file with this new dataset
+			# with open(self.csv_file_deprVol, 'w') as file:
+			df = pd.DataFrame.from_dict(self.dataset_deprVol)
+			df.to_csv(self.csv_file_deprVol, index=False)
+
+
+		self.dataset_deprVol = csv_to_dict(self.csv_file_deprVol)	
+		print(self.dataset_deprVol)
 
 
 	@pyqtSlot()
@@ -184,6 +226,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		""" Function that open csv file and write data into a dictionary
 			Then, display the first image of the file
 			"""
+		print("-on_action_Open_csv_triggered")
 		(self.csv_file,filtre) = QFileDialog.getOpenFileName(self,"Open CSV File", filter="(*.csv)")
 
 		# if csv_file:
@@ -202,8 +245,12 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.pushButton_ellipse_simamp.setEnabled(True)
 		self.pushButton_filtered_SAR.setEnabled(True)
 		self.pushButton_pick_SAR.setEnabled(True)
+		self.pushButton_pick_deprVol.setEnabled(True)
 
 		self.initiateSARPlot()
+
+
+
 
 
 	# def closeEvent(self,event):
@@ -227,7 +274,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			"""
 
 		# Close current figure if it exists:
-		print(" initiate sar plot")
+		print("-initiate sar plot")
 		if self.rm_canvas:
 			print("-- remove canvas (memorise lim_x and lim_y)")
 			self.lim_x = self.ax.get_xlim()
@@ -294,7 +341,10 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		self.lim_x_or = self.ax.get_xlim()
 		self.lim_y_or = self.ax.get_ylim()
 		# Display name of first point to pick
-		self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		if self.pushButton_pick_SAR.isChecked():
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		elif self.pushButton_pick_deprVol.isChecked():
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_deprVol(self.pick_SAR_index))
 
 
 	def updateSARPlot(self):
@@ -353,7 +403,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 	@data_loaded
 	def loadSAR(self):
-		print("initiateSAR request")
+		print("-loadSAR")
 		self.index_live = self.SAR_change.value()
 		self.SAR_greyscale.setValue(int((self.dataset['expo_greyscale'][self.index_live])*100))
 		self.lim_x = self.ax.get_xlim()
@@ -415,6 +465,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		if self.pushButton_pick_SAR.isChecked():
 			self.frame_pickSAR.show()
 			self.pushButton_ellipse.setChecked(True)
+			self.pushButton_pick_deprVol.setChecked(False)
 			self.updateSARPlot()
 			# Activate variable to use in the pickingManagement function
 			self.pickSAR_activated = True
@@ -425,16 +476,43 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			self.pickSAR_activated = False
 
 
+	@data_loaded
+	def pickDeprVol(self):
+		print("-pickDeprVol")
+		if self.pushButton_pick_deprVol.isChecked():
+			self.Open_csv_deprVol()
+			self.frame_pickSAR.show()
+			self.pushButton_ellipse.setChecked(False)
+			self.pushButton_pick_SAR.setChecked(False)
+			# self.pushButton_pickSHAD_getData.setVisible(True)
+			self.updateSARPlot()
+			# Activate variable to use in the pickingManagement function
+			self.pickSAR_activated = True
+			# Display the next points to pick in the label of picking frame panel
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_deprVol(self.pick_SAR_index))
+		else:
+			self.frame_pickSAR.hide()
+			self.pickSAR_activated = False
+			self.updateSARPlot()
+
 	def pickSARNext(self):
 		self.pick_SAR_index += 1
-		self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 9)
-		self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		if self.pushButton_pick_SAR.isChecked():
+			self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 9)
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		elif self.pushButton_pick_deprVol.isChecked():
+			self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 1)
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_deprVol(self.pick_SAR_index))
 		# pickSARManagement(self)
 
 	def pickSARPrev(self):
 		self.pick_SAR_index += -1
-		self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 9)
-		self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		if self.pushButton_pick_SAR.isChecked():
+			self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 9)
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex(self.pick_SAR_index))
+		elif self.pushButton_pick_deprVol.isChecked():
+			self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 1)
+			self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_deprVol(self.pick_SAR_index))
 		# pickSARManagement(self)
 
 	def pickSARSave(self):
@@ -446,7 +524,13 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 		csv_file_out = self.csv_file + '_pick_results.csv'
 		shutil.copyfile(csv_file_out_tmp, csv_file_out)
 		print("--> csv file for plotting picking results is updated ")
-
+		try:
+			if os.path.exists(self.csv_file_deprVol):
+				df = pd.DataFrame.from_dict(self.dataset_deprVol)
+				df.to_csv(self.csv_file_deprVol, index=False)
+				print("--> csv file for depression volume is updated")
+		except:
+			print("no data recorded yet for calculation of volume in depression SO")
 		self.pushButton_pickSAR_save.setChecked(False)
 		self.pickSARNext()
 
@@ -464,7 +548,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				"""
 
 			# Close current figure if it exists:
-			print(" initiate profile plot")
+			print("-initiateProfilePlot")
 			if self.rm_canvas:
 				self.canvas_profile.close()
 				self.toolbar_profile.close()
@@ -492,7 +576,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				2: Add this to the layout "SARLayout" !!! Layout need to be added to the QWidget
 				3: we do not set clip min/max  
 				"""
-			print("update profile plot")
+			print("-updateProfilePlt")
 			self.canvas_profile.close()
 			self.toolbar_profile.close()
 			# Get matplotlib figure objetct and min/max value of amplitude image
@@ -522,7 +606,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 				"""
 
 			# Close current figure if it exists:
-			print(" initiate View 3D plot")
+			print("-initiateView3DPlot")
 			if self.rm_canvas_view3d:
 				self.canvas_view3d.close()
 				self.toolbar_view3d.close()
@@ -554,7 +638,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			"""
 
 		# Close current figure if it exists:
-		print(" initiate amplitude simulation plot")
+		print("-initiateSimAmpliPlot")
 		if self.rm_canvas_simampli:
 			self.canvas_sim_ampli.close()
 			self.toolbar_sim_ampli.close()
@@ -595,8 +679,8 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 			return
 
 		# Close current figure if it exists:
-		print("initiate pickingResultsPlot")
-		print("--> elf.rm_canvas_pickresults = ", self.rm_canvas_pickresults)
+		print("-pickingResultsPlot")
+		print("self.rm_canvas_pickresults = ", self.rm_canvas_pickresults)
 		if self.rm_canvas_pickresults:
 			self.canvas_pickresults.close()
 			self.toolbar_pickresults.close()

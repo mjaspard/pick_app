@@ -68,6 +68,16 @@ def pick_point(self, info_str, x, y):
     self.dataset[y_str][self.index_live] = round(y)
 
 
+def pick_point_deprVol(self, info_str, y):
+    """Function that will write in the dictionary "dataset_deprVol" new coordinate of clicked point"""
+    # x_str = "{}_x".format(info_str)
+    y_str = "{}_y".format(info_str)
+    # print("{} = [{}:{}]".format(info_str, x, y))
+    # self.dataset[x_str][self.index_live] = round(x)
+    self.dataset_deprVol[y_str][self.index_live] = round(y)
+
+
+
 def getPointNameFromIndex(index):
     switcher = {
     0: 'caldera_edgeN',
@@ -80,6 +90,15 @@ def getPointNameFromIndex(index):
     7: 'crater_bottom_edgeS',
     }
     return switcher.get(index, "nothing")
+
+
+def getPointNameFromIndex_deprVol(index):
+    switcher = {
+    0: 'depression_edgeN',
+    1: 'depression_edgeS',
+    }
+    return switcher.get(index, "nothing")
+
 
 
 # Events
@@ -116,8 +135,6 @@ def onclick(event, self):
                 # # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
                 # # print("record zoom value :", self.lim_x, self.lim_y)
                 self.SAR_zoom = True
-
-
                 # Get points to pick fron inex value
                 point_str = getPointNameFromIndex(self.pick_SAR_index)
                 pick_point(self, point_str, event.xdata, event.ydata)
@@ -131,6 +148,36 @@ def onclick(event, self):
                 # Make Save button + update sim amp checkable 
                 self.pushButton_pickSAR_save.setChecked(True)
                 self.pushButton_update_simamp.setChecked(True)
+
+
+        # Picking options mest be activated
+        if self.pushButton_pick_deprVol.isChecked():
+            # Mouse must be in a place where coordinate are available
+            print("------->onclick pick_deprVol.isChecked")
+            if event.xdata != None and event.ydata != None:
+
+                # record zoom value if anything pressed
+                # print("coordinate mouse : ", event.xdata, event.ydata)
+                self.lim_x = self.ax.get_xlim()
+                self.lim_y = self.ax.get_ylim()
+                # print("roriginal zoom value :", self.lim_x_or, self.lim_y_or)
+                # print("record zoom value :", self.lim_x, self.lim_y)
+                self.SAR_zoom = True
+                # Get points to pick fron inex value
+                point_str = getPointNameFromIndex_deprVol(self.pick_SAR_index)
+                print("point_str = {}".format(point_str))
+                pick_point_deprVol(self, point_str, event.ydata)
+                # Update figure
+                self.updateSARPlot()
+                # update index
+                self.pick_SAR_index += 1
+                self.pick_SAR_index = np.clip(self.pick_SAR_index, 0 , 1)
+                # Display new point to pick in information label
+                self.label_pickSAR_PtsToPick.setText(getPointNameFromIndex_deprVol(self.pick_SAR_index))
+                # Make Save button + update sim amp checkable 
+                print("set save button blue")
+                self.pushButton_pickSAR_save.setChecked(True)
+
 
 
 
@@ -625,6 +672,7 @@ def updateParametersFile(filename, param, new_value):
     """ This function is used to replace in a file the value of a parameters.
     The parameters must be written before a #, and the value just after the dash """
 
+    # try:
     # Open the file in 'read' mode and read all the lines into a list
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -633,16 +681,19 @@ def updateParametersFile(filename, param, new_value):
     for i, line in enumerate(lines):
         if re.search(param, line) and re.search(r'^[^#].', line):
             # create pattern to extract current parameter value
-            pattern = r"=\s+[0-9]+"
+            pattern = r"=\s+-?[0-9]+"
+            print("i - line = {} - {}".format(i, line))
             value = re.search(pattern, line)[0]
-            value = re.search("\d+", value)[0]
-            new_line = line.replace(value, new_value)
+            value = re.search("-?\d+", value)[0]
+            new_line = line.replace(value, str(new_value))
             lines[i] = new_line
                 
     # Open the file in 'write' mode and write the updated lines to the file
     with open(filename, 'w') as file:
         file.writelines(lines)
-
+    # except:
+    #     print("Error occured when update following file: ", filename)
+    #     print("---->    -- param = {}.  --  value = {}".format(param, new_value))
 
 
 
@@ -662,10 +713,10 @@ def LooadParametersFile(filename):
             try:
                 pattern = r"^\s*.+="
                 param = re.search(pattern, line)[0]
-                param = re.search("\w+", param)[0]
+                param = re.search("-?\w+", param)[0]
                 pattern = r"=\s+.+\s*#*"
                 value = re.search(pattern, line)[0]
-                value = re.search("\w+", value)[0]
+                value = re.search("-?\w+", value)[0]
             except:
                 print("issue no param or value found: File input shape does not match <param = value>  ")
                 break
