@@ -218,7 +218,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 
 		self.dataset_deprVol = csv_to_dict(self.csv_file_deprVol)	
-		print(self.dataset_deprVol)
+
 
 
 	@pyqtSlot()

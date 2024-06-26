@@ -13,4 +13,4 @@ Rbase = 4500
 Zvolc = 3000
 Zbase = 2250
 
-deltaDeprSO = -300
+deltaDeprSO = -500
