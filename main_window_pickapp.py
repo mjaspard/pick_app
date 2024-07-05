@@ -205,7 +205,7 @@ class MainWindowPickApp(QMainWindow,Ui_MainWindow):
 
 			print("--> create new file")
 			# Create a new dataset based on the main one, keeping folder and image_name and adding pick parameters		
-			keys_to_keep = ['folder', 'img_name', 'caldera_edgeN_x', 'caldera_edgeN_y','caldera_edgeS_y']
+			keys_to_keep = ['folder', 'img_name', 'day', 'hour_UTC', 'caldera_edgeN_x', 'caldera_edgeN_y','caldera_edgeS_y']
 			self.dataset_deprVol = {key: self.dataset[key] for key in keys_to_keep}
 			# Add new columns inside the new dataset
 			new_columns = ['dx', 'd0_N_y', 'd0_S_y', 'depression_edgeN_y', 'depression_edgeS_y']
